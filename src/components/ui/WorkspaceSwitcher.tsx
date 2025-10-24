@@ -18,7 +18,7 @@ export function WorkspaceSwitcher() {
 
   if (loading || !currentWorkspace) {
     return (
-      <Button variant="outline" size="sm" disabled className="min-w-[180px]">
+      <Button variant="outline" size="sm" disabled className="w-full md:min-w-[180px]">
         Loading...
       </Button>
     )
@@ -30,7 +30,7 @@ export function WorkspaceSwitcher() {
         variant="outline"
         size="sm"
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 min-w-[180px] max-w-[250px] justify-between"
+        className="flex items-center gap-2 w-full md:min-w-[180px] md:max-w-[250px] justify-between"
       >
         <div className="text-left truncate py-1">
           <div className="font-medium text-sm truncate mb-0.5">{currentWorkspace.name}</div>
