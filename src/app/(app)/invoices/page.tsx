@@ -271,8 +271,8 @@ export default function Invoices() {
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-4 sm:p-6">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
               </CardContent>
             </Card>
           ))}
@@ -296,7 +296,7 @@ export default function Invoices() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
           {error}
         </div>
       )}
@@ -322,15 +322,15 @@ export default function Invoices() {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-base font-semibold truncate">{invoice.invoiceNumber}</h3>
-                          <Badge 
-                            variant="secondary" 
-                            className={`text-xs ${
-                              invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                              invoice.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                              invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}
-                          >
+                               <Badge
+                                 variant="secondary"
+                                 className={`text-xs ${
+                                   invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                                   invoice.status === 'sent' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' :
+                                   invoice.status === 'overdue' ? 'bg-destructive/10 text-destructive' :
+                                   'bg-muted text-muted-foreground'
+                                 }`}
+                               >
                             {invoice.status}
                           </Badge>
                         </div>
@@ -374,10 +374,10 @@ export default function Invoices() {
                         <Badge 
                           variant="secondary" 
                           className={`${
-                            invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                            invoice.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                            invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                            'bg-gray-100 text-gray-800'
+                            invoice.status === 'paid' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' :
+                            invoice.status === 'sent' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100' :
+                            invoice.status === 'overdue' ? 'bg-destructive/10 text-destructive' :
+                            'bg-muted text-muted-foreground'
                           }`}
                         >
                           {invoice.status}

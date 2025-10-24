@@ -44,11 +44,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
       <div className="max-w-md w-full space-y-8">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Timesheet</h1>
-          <p className="mt-2 text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Timesheet</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Sign in to your account
           </p>
         </div>
@@ -87,7 +87,7 @@ export default function LoginPage() {
               </div>
 
               {error && (
-                <div className="text-red-600 text-sm bg-red-50 p-3 rounded-md">
+                <div className="text-destructive text-sm bg-destructive/10 p-3 rounded-md">
                   {error}
                 </div>
               )}
@@ -101,7 +101,7 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 text-xs text-gray-500 text-center">
+            <div className="mt-6 text-xs text-muted-foreground text-center">
               <p>Dotkod Solutions</p>
             </div>
           </CardContent>

@@ -179,8 +179,8 @@ export default function Timesheets() {
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-4 bg-muted rounded w-3/4 mb-2"></div>
+                <div className="h-3 bg-muted rounded w-1/2"></div>
               </CardContent>
             </Card>
           ))}
@@ -206,7 +206,7 @@ export default function Timesheets() {
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
           {error}
         </div>
       )}
@@ -267,7 +267,7 @@ export default function Timesheets() {
                             itemName={`${timesheet.project} - ${timesheet.date}`}
                             onConfirm={() => handleDeleteTimesheet(timesheet.id)}
                             trigger={
-                              <div className="flex items-center gap-2 w-full text-red-600">
+                              <div className="flex items-center gap-2 w-full text-destructive">
                                 <Trash2 className="h-4 w-4" />
                                 Delete
                               </div>
