@@ -285,9 +285,9 @@ Does this look correct?`
   }
 
   return (
-    <div className="min-h-screen bg-background md:hidden">
-      {/* Chat Messages */}
-      <div className="flex-1 p-4 space-y-4 pb-20">
+    <div className="h-screen bg-background md:hidden flex flex-col">
+      {/* Chat Messages - Fixed height, scrollable */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.map((message) => (
           <div key={message.id} className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`flex items-start space-x-2 max-w-[80%] ${message.type === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
@@ -326,8 +326,8 @@ Does this look correct?`
         ))}
       </div>
 
-      {/* Input Area */}
-      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
+      {/* Input Area - Fixed at bottom */}
+      <div className="bg-background border-t border-border p-4">
         <div className="flex items-center space-x-2">
           <Input
             value={inputValue}
