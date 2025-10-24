@@ -33,8 +33,15 @@ export function WorkspaceSwitcher() {
         className="flex items-center gap-2 w-full md:min-w-[180px] md:max-w-[250px] justify-between"
       >
         <div className="text-left truncate py-1">
-          <div className="font-medium text-sm truncate mb-0.5">{currentWorkspace.name}</div>
-          <div className="text-xs text-muted-foreground truncate">{currentWorkspace.slug}</div>
+          {/* Mobile: Combined format */}
+          <div className="font-medium text-sm truncate md:hidden">
+            {currentWorkspace.name} ({currentWorkspace.slug})
+          </div>
+          {/* Desktop: Separate lines */}
+          <div className="hidden md:block">
+            <div className="font-medium text-sm truncate mb-0.5">{currentWorkspace.name}</div>
+            <div className="text-xs text-muted-foreground truncate">{currentWorkspace.slug}</div>
+          </div>
         </div>
         <ChevronDown className={`h-4 w-4 transition-transform flex-shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
       </Button>
