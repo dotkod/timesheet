@@ -216,7 +216,7 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
   const currencySymbol = getCurrencySymbol(workspaceData.currency || 'MYR')
   
   return `
-    <div style="padding: 40px; max-width: 800px; margin: 0 auto; font-family: Arial, sans-serif; color: #000; background: #fff;">
+    <div style="padding: 40px; max-width: 900px; margin: 0 auto; font-family: Arial, sans-serif; color: #000; background: #fff;">
           <!-- Header Section -->
           <div style="margin-bottom: 30px;">
             <!-- INVOICE Title (Top Right) -->
@@ -227,7 +227,7 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
             <!-- From, To, Date Row -->
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
               <!-- Left Section (From + To) -->
-              <div style="display: flex; flex: 2; gap: 80px;">
+              <div style="display: flex; flex: 2; gap: 120px;">
                 <!-- From Section -->
                 <div>
                   <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #000;">From:</h3>
@@ -246,7 +246,11 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
                   <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #000;">To:</h3>
                   <div style="line-height: 1.2;">
                     <p style="margin: 0 0 3px 0; font-weight: bold; font-size: 14px; color: #000;">${invoiceData.client}</p>
-                    ${invoiceData.clientAddress ? `<p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">${invoiceData.clientAddress}</p>` : ''}
+                    ${invoiceData.clientAddress ? `
+                      ${invoiceData.clientAddress.split(',').map(line => 
+                        `<p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">${line.trim()}</p>`
+                      ).join('')}
+                    ` : ''}
                     ${invoiceData.clientPhone ? `<p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">Phone: ${invoiceData.clientPhone}</p>` : ''}
                     ${invoiceData.clientEmail ? `<p style="margin: 0; font-size: 12px; color: #000;">Email: ${invoiceData.clientEmail}</p>` : ''}
                   </div>
