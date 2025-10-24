@@ -9,7 +9,7 @@ import {
   FolderOpen, 
   FileText, 
   Settings,
-  Plus
+  Bot
 } from "lucide-react"
 
 export function BottomNav() {
@@ -58,7 +58,7 @@ export function BottomNav() {
     {
       name: 'Quick Add',
       href: createLink('/mobile-assistant'),
-      icon: Plus,
+      icon: Bot,
       path: '/mobile-assistant'
     }
   ]
