@@ -261,16 +261,16 @@ export default function Invoices() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Invoices</h1>
             <p className="text-muted-foreground">Loading invoices...</p>
           </div>
         </div>
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
-              <CardContent className="p-6">
+              <CardContent className="p-4 sm:p-6">
                 <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-gray-200 rounded w-1/2"></div>
               </CardContent>
@@ -285,8 +285,8 @@ export default function Invoices() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Invoices</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Manage your invoices and track payments.
           </p>
         </div>
@@ -304,7 +304,7 @@ export default function Invoices() {
       <div className="space-y-4">
         {invoices.length === 0 ? (
           <Card>
-            <CardContent className="p-12 text-center">
+            <CardContent className="p-6 sm:p-12 text-center">
               <div className="space-y-4">
                 <p className="text-muted-foreground">No invoices found. Generate your first invoice to get started.</p>
                 <InvoiceGenerationModal onGenerate={handleGenerateInvoice} />
@@ -312,54 +312,107 @@ export default function Invoices() {
             </CardContent>
           </Card>
         ) : (
-          invoices.map((invoice) => (
-            <Card key={invoice.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{invoice.invoiceNumber}</h3>
-                      <Badge 
-                        variant="secondary" 
-                        className={`${
-                          invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
-                          invoice.status === 'sent' ? 'bg-blue-100 text-blue-800' :
-                          invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}
-                      >
-                        {invoice.status}
-                      </Badge>
+          <div className="grid grid-cols-1 gap-4">
+            {invoices.map((invoice) => (
+              <Card key={invoice.id} className="hover:shadow-md transition-shadow">
+                <CardContent className="p-4 sm:p-6">
+                  {/* Mobile Layout */}
+                  <div className="block sm:hidden space-y-3">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-base font-semibold truncate">{invoice.invoiceNumber}</h3>
+                          <Badge 
+                            variant="secondary" 
+                            className={`text-xs ${
+                              invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
+                              invoice.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                              invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {invoice.status}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground truncate">{invoice.client}</p>
+                        <p className="text-sm text-muted-foreground truncate">{invoice.description}</p>
+                        <div className="text-sm font-medium text-foreground mt-2">
+                          Total: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {invoice.total.toFixed(2)}
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-sm text-muted-foreground">{invoice.client}</p>
-                    <p className="text-sm text-muted-foreground">{invoice.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Issued: {invoice.dateIssued}</span>
-                      <span>Due: {invoice.dueDate}</span>
-                      <span className="font-medium text-foreground">Total: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {invoice.total.toFixed(2)}</span>
+                    
+                    <div className="space-y-2 text-xs text-muted-foreground">
+                      <div>Issued: {invoice.dateIssued}</div>
+                      <div>Due: {invoice.dueDate}</div>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-2">
+                      <Button variant="outline" size="sm" className="text-xs h-8 px-3" onClick={() => previewInvoice(invoice.id)}>
+                        Preview
+                      </Button>
+                      <Button variant="outline" size="sm" className="text-xs h-8 px-3" onClick={() => exportInvoice(invoice.id)}>
+                        Export
+                      </Button>
+                      <InvoiceEditModal 
+                        invoice={invoice}
+                        onSave={handleEditInvoice}
+                        trigger={
+                          <Button variant="outline" size="sm" className="text-xs h-8 px-3">
+                            Edit
+                          </Button>
+                        }
+                      />
                     </div>
                   </div>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" onClick={() => previewInvoice(invoice.id)}>
-                      Preview PDF
-                    </Button>
-                    <Button variant="outline" size="sm" onClick={() => exportInvoice(invoice.id)}>
-                      Export PDF
-                    </Button>
-                    <InvoiceEditModal 
-                      invoice={invoice}
-                      onSave={handleEditInvoice}
-                      trigger={
-                        <Button variant="outline" size="sm">
-                          Edit
-                        </Button>
-                      }
-                    />
+
+                  {/* Desktop Layout */}
+                  <div className="hidden sm:flex items-start justify-between">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold">{invoice.invoiceNumber}</h3>
+                        <Badge 
+                          variant="secondary" 
+                          className={`${
+                            invoice.status === 'paid' ? 'bg-green-100 text-green-800' :
+                            invoice.status === 'sent' ? 'bg-blue-100 text-blue-800' :
+                            invoice.status === 'overdue' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}
+                        >
+                          {invoice.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{invoice.client}</p>
+                      <p className="text-sm text-muted-foreground">{invoice.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                        <span>Issued: {invoice.dateIssued}</span>
+                        <span>Due: {invoice.dueDate}</span>
+                        <span className="font-medium text-foreground">Total: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {invoice.total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button variant="outline" size="sm" onClick={() => previewInvoice(invoice.id)}>
+                        Preview PDF
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => exportInvoice(invoice.id)}>
+                        Export PDF
+                      </Button>
+                      <InvoiceEditModal 
+                        invoice={invoice}
+                        onSave={handleEditInvoice}
+                        trigger={
+                          <Button variant="outline" size="sm">
+                            Edit
+                          </Button>
+                        }
+                      />
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         )}
       </div>
     </div>
