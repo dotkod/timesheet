@@ -138,6 +138,8 @@ export default function Invoices() {
         // Fetch client details
         const clientResponse = await fetch(`/api/clients?workspaceId=${currentWorkspace?.id}`)
         const clientData = await clientResponse.json()
+        console.log('All clients from API:', clientData.clients) // Debug log
+        console.log('Looking for clientId:', invoice.clientId) // Debug log
         const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
         
         console.log('Client data:', client) // Debug log
@@ -204,6 +206,8 @@ export default function Invoices() {
         // Fetch client details
         const clientResponse = await fetch(`/api/clients?workspaceId=${currentWorkspace?.id}`)
         const clientData = await clientResponse.json()
+        console.log('All clients from API:', clientData.clients) // Debug log
+        console.log('Looking for clientId:', invoice.clientId) // Debug log
         const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
         
         console.log('Client data:', client) // Debug log

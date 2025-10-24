@@ -99,6 +99,8 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
       const response = await fetch(`/api/clients?workspaceId=${currentWorkspace.id}`)
       const data = await response.json()
       if (response.ok) {
+        console.log('Edit Modal - All clients:', data.clients) // Debug log
+        console.log('Edit Modal - Invoice clientId:', invoice.clientId) // Debug log
         setClients(data.clients || [])
       }
     } catch (error) {
