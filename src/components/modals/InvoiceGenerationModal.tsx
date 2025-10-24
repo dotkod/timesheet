@@ -330,7 +330,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
           <div className="space-y-2">
             <Label htmlFor="description">Invoice Description</Label>
             <Editor
-              apiKey="no-api-key"
+              apiKey="l83sjkylmyn9h2qo9h3wca1hhb07mq90afi5mhptqfyzt26i"
               value={invoiceData.description}
               onEditorChange={(content) => setInvoiceData(prev => ({ ...prev, description: content }))}
               init={{
