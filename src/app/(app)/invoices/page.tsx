@@ -135,6 +135,11 @@ export default function Invoices() {
           return
         }
 
+        // Fetch client details
+        const clientResponse = await fetch(`/api/clients?workspaceId=${currentWorkspace?.id}`)
+        const clientData = await clientResponse.json()
+        const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
+
         // Fetch workspace settings for company info
         const settingsResponse = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace?.id}`)
         const settingsData = await settingsResponse.json()
@@ -152,6 +157,9 @@ export default function Invoices() {
           id: invoice.id,
           invoiceNumber: invoice.invoiceNumber,
           client: invoice.client,
+          clientAddress: client?.address || '',
+          clientPhone: client?.phone || '',
+          clientEmail: client?.email || '',
           dateIssued: invoice.dateIssued,
           dueDate: invoice.dueDate,
           subtotal: invoice.subtotal,

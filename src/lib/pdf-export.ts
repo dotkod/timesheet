@@ -6,6 +6,9 @@ interface InvoiceData {
   id: string
   invoiceNumber: string
   client: string
+  clientAddress?: string
+  clientPhone?: string
+  clientEmail?: string
   dateIssued: string
   dueDate: string
   subtotal: number
@@ -139,6 +142,9 @@ function replaceTemplatePlaceholders(templateHtml: string, invoiceData: InvoiceD
   
   // Replace client placeholders
   html = html.replace(/\{\{client\.name\}\}/g, invoiceData.client)
+  html = html.replace(/\{\{client\.address\}\}/g, invoiceData.clientAddress || '')
+  html = html.replace(/\{\{client\.phone\}\}/g, invoiceData.clientPhone || '')
+  html = html.replace(/\{\{client\.email\}\}/g, invoiceData.clientEmail || '')
   
   // Replace items table
   if (html.includes('{{items_table}}')) {
@@ -183,7 +189,10 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
                 <div>
                   <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #000;">To:</h3>
                   <div style="line-height: 1.2;">
-                    <p style="margin: 0; font-weight: bold; font-size: 14px; color: #000;">${invoiceData.client}</p>
+                    <p style="margin: 0 0 3px 0; font-weight: bold; font-size: 14px; color: #000;">${invoiceData.client}</p>
+                    ${invoiceData.clientAddress ? `<p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">${invoiceData.clientAddress}</p>` : ''}
+                    ${invoiceData.clientPhone ? `<p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">Phone: ${invoiceData.clientPhone}</p>` : ''}
+                    ${invoiceData.clientEmail ? `<p style="margin: 0; font-size: 12px; color: #000;">Email: ${invoiceData.clientEmail}</p>` : ''}
                   </div>
                 </div>
               </div>
@@ -195,12 +204,22 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
             </div>
           </div>
       
+      <!-- Invoice Description Section -->
+      ${invoiceData.description ? `
+        <div style="margin-bottom: 25px;">
+          <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold; color: #000;">Invoice Description:</h3>
+          <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #000; font-size: 14px; line-height: 1.5; color: #000;">
+            ${invoiceData.description.replace(/\n/g, '<br>')}
+          </div>
+        </div>
+      ` : ''}
+      
       <!-- Items Table -->
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; border: 1px solid #000;">
         <thead>
           <tr style="background-color: #000;">
             <th style="border: 1px solid #000; padding: 12px; text-align: left; font-weight: bold; font-size: 14px; color: #fff;">No</th>
-            <th style="border: 1px solid #000; padding: 12px; text-align: left; font-weight: bold; font-size: 14px; color: #fff;">Description</th>
+            <th style="border: 1px solid #000; padding: 12px; text-align: left; font-weight: bold; font-size: 14px; color: #fff;">Invoice Description</th>
             <th style="border: 1px solid #000; padding: 12px; text-align: right; font-weight: bold; font-size: 14px; color: #fff;">Amount (RM)</th>
           </tr>
         </thead>
