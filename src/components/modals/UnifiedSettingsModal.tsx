@@ -98,7 +98,7 @@ export function UnifiedSettingsModal({ settings, onSave, trigger }: UnifiedSetti
       <DialogTrigger asChild>
         {trigger || <Button><Edit className="h-4 w-4 mr-2" />Edit Settings</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
@@ -292,11 +292,11 @@ export function UnifiedSettingsModal({ settings, onSave, trigger }: UnifiedSetti
             </div>
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               <Save className="h-4 w-4 mr-2" />
               Save Settings
             </Button>

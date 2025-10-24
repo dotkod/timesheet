@@ -245,7 +245,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" />Generate Invoice</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Generate New Invoice</DialogTitle>
           <DialogDescription>
@@ -475,13 +475,14 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
           </div>
         </div>
 
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button 
             onClick={handleGenerate}
             disabled={!selectedClient || !selectedTemplate || selectedTimesheets.length === 0}
+            className="w-full sm:w-auto"
           >
             Generate Invoice
           </Button>

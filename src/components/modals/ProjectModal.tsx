@@ -85,7 +85,7 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{project ? "Edit Project" : "Add New Project"}</DialogTitle>
           <DialogDescription>
@@ -94,36 +94,34 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="name">
                 Name *
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                className="col-span-3"
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="code" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="code">
                 Code
               </Label>
               <Input
                 id="code"
                 value={formData.code}
                 onChange={(e) => handleChange("code", e.target.value)}
-                className="col-span-3"
                 placeholder="e.g., PROJ-001"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="client" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="client">
                 Client *
               </Label>
               <Select value={formData.clientId} onValueChange={(value) => handleChange("clientId", value)}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger>
                   <SelectValue placeholder="Select a client" />
                 </SelectTrigger>
                 <SelectContent>
@@ -135,12 +133,12 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="billingType" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="billingType">
                 Billing Type *
               </Label>
               <Select value={formData.billingType} onValueChange={(value) => handleChange("billingType", value)}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger>
                   <SelectValue placeholder="Select billing type" />
                 </SelectTrigger>
                 <SelectContent>
@@ -150,8 +148,8 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
               </Select>
             </div>
             {formData.billingType === "hourly" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="hourlyRate" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="hourlyRate">
                   Hourly Rate *
                 </Label>
                 <Input
@@ -161,15 +159,14 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
                   min="0"
                   value={formData.hourlyRate}
                   onChange={(e) => handleChange("hourlyRate", parseFloat(e.target.value) || 0)}
-                  className="col-span-3"
                   placeholder="0.00"
                   required
                 />
               </div>
             )}
             {formData.billingType === "fixed" && (
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="fixedAmount" className="text-right">
+              <div className="space-y-2">
+                <Label htmlFor="fixedAmount">
                   Monthly Amount *
                 </Label>
                 <Input
@@ -179,18 +176,17 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
                   min="0"
                   value={formData.fixedAmount}
                   onChange={(e) => handleChange("fixedAmount", parseFloat(e.target.value) || 0)}
-                  className="col-span-3"
                   placeholder="0.00"
                   required
                 />
               </div>
             )}
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="status">
                 Status
               </Label>
               <Select value={formData.status} onValueChange={(value) => handleChange("status", value)}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -200,25 +196,24 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="notes">
                 Notes
               </Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleChange("notes", e.target.value)}
-                className="col-span-3"
                 rows={3}
                 placeholder="Project description and notes..."
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               {project ? "Update Project" : "Create Project"}
             </Button>
           </DialogFooter>

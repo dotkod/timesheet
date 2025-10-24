@@ -81,7 +81,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -212,11 +212,11 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit" className="min-w-[120px]">
+            <Button type="submit" className="w-full sm:w-auto min-w-[120px]">
               {timesheet ? "Update Entry" : "Create Entry"}
             </Button>
           </DialogFooter>

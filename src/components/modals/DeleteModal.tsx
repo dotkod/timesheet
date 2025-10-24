@@ -32,18 +32,18 @@ export function DeleteModal({ itemType, itemName, onConfirm, trigger }: DeleteMo
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-red-600">Delete {itemType}</DialogTitle>
           <DialogDescription>
             Are you sure you want to delete <strong>{itemName}</strong>? This action cannot be undone.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+        <DialogFooter className="gap-2 flex-col sm:flex-row">
+          <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button type="button" variant="destructive" onClick={handleConfirm}>
+          <Button type="button" variant="destructive" onClick={handleConfirm} className="w-full sm:w-auto">
             Delete {itemType}
           </Button>
         </DialogFooter>

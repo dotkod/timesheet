@@ -73,7 +73,7 @@ export function ClientModal({ client, onSave, trigger }: ClientModalProps) {
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{client ? "Edit Client" : "Add New Client"}</DialogTitle>
           <DialogDescription>
@@ -82,20 +82,19 @@ export function ClientModal({ client, onSave, trigger }: ClientModalProps) {
         </DialogHeader>
         <form onSubmit={handleSubmit}>
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="name" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="name">
                 Name *
               </Label>
               <Input
                 id="name"
                 value={formData.name}
                 onChange={(e) => handleChange("name", e.target.value)}
-                className="col-span-3"
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="email" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="email">
                 Email *
               </Label>
               <Input
@@ -103,39 +102,36 @@ export function ClientModal({ client, onSave, trigger }: ClientModalProps) {
                 type="email"
                 value={formData.email}
                 onChange={(e) => handleChange("email", e.target.value)}
-                className="col-span-3"
                 required
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="phone" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="phone">
                 Phone
               </Label>
               <Input
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handleChange("phone", e.target.value)}
-                className="col-span-3"
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="address" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="address">
                 Address
               </Label>
               <Textarea
                 id="address"
                 value={formData.address}
                 onChange={(e) => handleChange("address", e.target.value)}
-                className="col-span-3"
                 rows={3}
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="status" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="status">
                 Status
               </Label>
               <Select value={formData.status} onValueChange={(value) => handleChange("status", value)}>
-                <SelectTrigger className="col-span-3">
+                <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -145,25 +141,24 @@ export function ClientModal({ client, onSave, trigger }: ClientModalProps) {
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="notes" className="text-right">
+            <div className="space-y-2">
+              <Label htmlFor="notes">
                 Notes
               </Label>
               <Textarea
                 id="notes"
                 value={formData.notes}
                 onChange={(e) => handleChange("notes", e.target.value)}
-                className="col-span-3"
                 rows={3}
                 placeholder="Additional notes about the client..."
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <DialogFooter className="gap-2 flex-col sm:flex-row">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" className="w-full sm:w-auto">
               {client ? "Update Client" : "Create Client"}
             </Button>
           </DialogFooter>
