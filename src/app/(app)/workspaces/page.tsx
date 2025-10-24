@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { useWorkspace } from "@/lib/workspace-context"
+import dayjs from "dayjs"
 
 interface Workspace {
   id: string
@@ -191,7 +192,7 @@ export default function Workspaces() {
                   </div>
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Created: {new Date(workspace.createdAt).toLocaleDateString()}
+                  Created: {dayjs(workspace.createdAt).format('DD MMMM YYYY')}
                 </div>
                 {currentWorkspace?.id === workspace.id && (
                   <div className="text-sm font-medium text-primary">

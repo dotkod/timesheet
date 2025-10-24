@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { WorkspaceSettingsModal, BillingSettingsModal, PreferencesModal } from "@/components/modals/SettingsModals"
 import { InvoiceTemplateModal, TemplatePreviewModal } from "@/components/modals/InvoiceTemplateModal"
 import { useWorkspace } from "@/lib/workspace-context"
+import dayjs from "dayjs"
 
 interface WorkspaceSettings {
   companyName?: string
@@ -314,7 +315,7 @@ export default function Settings() {
                       {template.description || "No description"}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      Last modified: {new Date(template.updatedAt).toLocaleDateString()}
+                      Last modified: {dayjs(template.updatedAt).format('DD MMMM YYYY')}
                     </p>
                   </div>
                   <div className="flex gap-2">

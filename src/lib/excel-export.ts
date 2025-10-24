@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx'
 import { saveAs } from 'file-saver'
+import dayjs from 'dayjs'
 
 export function getCurrencySymbol(currency: string): string {
   const symbols: { [key: string]: string } = {
@@ -88,8 +89,8 @@ export function exportProjectsToExcel(projects: any[], filename?: string, curren
       'Status': p.status,
       'Total Hours': p.totalHours,
       'Total Revenue': `${currencySymbol}${p.totalRevenue}`,
-      'Last Activity': p.lastActivity,
-      'Created': p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ''
+      'Last Activity': p.lastActivity ? dayjs(p.lastActivity).format('DD MMMM YYYY') : 'N/A',
+      'Created': p.createdAt ? dayjs(p.createdAt).format('DD MMMM YYYY') : ''
     }))
 
     const ws = XLSX.utils.json_to_sheet(data)
@@ -134,8 +135,8 @@ export function exportClientsToExcel(clients: any[], filename?: string, currency
       'Status': c.status,
       'Total Projects': c.totalProjects,
       'Total Revenue': `${currencySymbol}${c.totalRevenue}`,
-      'Last Contact': c.lastContact,
-      'Created': c.createdAt ? new Date(c.createdAt).toLocaleDateString() : ''
+      'Last Contact': c.lastContact ? dayjs(c.lastContact).format('DD MMMM YYYY') : 'N/A',
+      'Created': c.createdAt ? dayjs(c.createdAt).format('DD MMMM YYYY') : ''
     }))
 
     const ws = XLSX.utils.json_to_sheet(data)

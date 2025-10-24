@@ -37,7 +37,11 @@ export function TopNav() {
       <div className="flex items-center justify-between p-4">
         <div className="flex items-center space-x-4">
           <Link href={createLink("/dashboard")} className="text-xl font-bold">
-            Timesheet
+            <img
+              src="https://dotkod.com/_next/image?url=%2Fimages%2Flogo.png&w=64&q=10"
+              alt="Timesheet Logo"
+              className="h-8 w-8 mr-2 inline-block align-middle"
+            />
           </Link>
           <nav className="hidden md:flex items-center space-x-6">
             <Link href={createLink("/timesheets")} className="text-sm font-medium hover:text-primary">

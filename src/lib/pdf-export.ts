@@ -1,5 +1,6 @@
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
+import dayjs from 'dayjs'
 
 interface InvoiceData {
   id: string
@@ -289,7 +290,7 @@ export async function exportTimesheetsToPdf(
     element.innerHTML = `
       <div style="text-align: center; margin-bottom: 30px;">
         <h1 style="margin: 0; color: #2563eb; font-size: 24px;">Timesheet Report</h1>
-        <p style="margin: 5px 0; color: #6b7280;">Generated on ${new Date().toLocaleDateString()}</p>
+        <p style="margin: 5px 0; color: #6b7280;">Generated on ${dayjs().format('DD MMMM YYYY')}</p>
       </div>
       
       <table style="width: 100%; border-collapse: collapse;">

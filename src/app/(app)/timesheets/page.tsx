@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { TimesheetModal } from "@/components/modals/TimesheetModal"
 import { DeleteModal } from "@/components/modals/DeleteModal"
 import { useWorkspace } from "@/lib/workspace-context"
-import { exportTimesheetsToExcel } from "@/lib/excel-export"
+import { exportTimesheetsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 
 interface Timesheet {
   id: string
@@ -37,6 +37,7 @@ export default function Timesheets() {
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const { currentWorkspace } = useWorkspace()
 
   const fetchTimesheets = async () => {
@@ -83,9 +84,25 @@ export default function Timesheets() {
     }
   }
 
+  const fetchWorkspaceSettings = async () => {
+    if (!currentWorkspace) return
+    
+    try {
+      const response = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace.id}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setWorkspaceSettings(data.settings || {})
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace settings:', error)
+    }
+  }
+
   useEffect(() => {
     fetchTimesheets()
     fetchProjects()
+    fetchWorkspaceSettings()
   }, [currentWorkspace])
 
   const handleSaveTimesheet = async (timesheetData: any) => {
@@ -214,8 +231,8 @@ export default function Timesheets() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Date: {timesheet.date}</span>
                       <span>Hours: {timesheet.hours}</span>
-                      <span>Rate: ${timesheet.hourlyRate}/h</span>
-                      <span className="font-medium text-foreground">Total: ${timesheet.total.toFixed(2)}</span>
+                      <span>Rate: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {timesheet.hourlyRate}/h</span>
+                      <span className="font-medium text-foreground">Total: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {timesheet.total.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">

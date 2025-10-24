@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ProjectModal } from "@/components/modals/ProjectModal"
+import { ProjectDetailsModal } from "@/components/modals/ProjectDetailsModal"
 import { DeleteModal } from "@/components/modals/DeleteModal"
 import { useWorkspace } from "@/lib/workspace-context"
-import { exportProjectsToExcel } from "@/lib/excel-export"
+import { exportProjectsToExcel, getCurrencySymbol } from "@/lib/excel-export"
+import dayjs from "dayjs"
 
 interface Project {
   id: string
@@ -35,6 +37,7 @@ export default function Projects() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const { currentWorkspace } = useWorkspace()
 
   const fetchProjects = async () => {
@@ -73,9 +76,25 @@ export default function Projects() {
     }
   }
 
+  const fetchWorkspaceSettings = async () => {
+    if (!currentWorkspace) return
+    
+    try {
+      const response = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace.id}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setWorkspaceSettings(data.settings || {})
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace settings:', error)
+    }
+  }
+
   useEffect(() => {
     fetchProjects()
     fetchClients()
+    fetchWorkspaceSettings()
   }, [currentWorkspace])
 
   const handleSaveProject = async (projectData: any) => {
@@ -220,7 +239,7 @@ export default function Projects() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Rate:</span>
-                    <span className="font-medium">${project.hourlyRate}/h</span>
+                    <span className="font-medium">{getCurrencySymbol(workspaceSettings.currency || 'MYR')} {project.hourlyRate}/h</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Hours:</span>
@@ -228,17 +247,22 @@ export default function Projects() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Revenue:</span>
-                    <span className="font-medium">${project.totalRevenue.toFixed(2)}</span>
+                    <span className="font-medium">{getCurrencySymbol(workspaceSettings.currency || 'MYR')} {project.totalRevenue.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Last Activity:</span>
-                    <span className="font-medium">{project.lastActivity}</span>
+                    <span className="font-medium">{project.lastActivity ? dayjs(project.lastActivity).format('DD MMMM YYYY') : 'N/A'}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    View Details
-                  </Button>
+                  <ProjectDetailsModal 
+                    project={project}
+                    trigger={
+                      <Button variant="outline" size="sm" className="flex-1">
+                        View Details
+                      </Button>
+                    }
+                  />
                   <ProjectModal 
                     project={project} 
                     clients={clients}

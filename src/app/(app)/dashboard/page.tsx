@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useWorkspace } from "@/lib/workspace-context"
-import { exportTimesheetsToExcel } from "@/lib/excel-export"
+import { exportTimesheetsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 
 interface DashboardStats {
   totalHours: number
@@ -34,6 +34,7 @@ export default function Dashboard() {
   })
   const [recentTimesheets, setRecentTimesheets] = useState<RecentTimesheet[]>([])
   const [loading, setLoading] = useState(true)
+  const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const { currentWorkspace } = useWorkspace()
 
   const fetchDashboardData = async () => {
@@ -102,8 +103,24 @@ export default function Dashboard() {
     }
   }
 
+  const fetchWorkspaceSettings = async () => {
+    if (!currentWorkspace) return
+    
+    try {
+      const response = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace.id}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setWorkspaceSettings(data.settings || {})
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace settings:', error)
+    }
+  }
+
   useEffect(() => {
     fetchDashboardData()
+    fetchWorkspaceSettings()
   }, [currentWorkspace])
 
   if (loading) {
@@ -176,7 +193,7 @@ export default function Dashboard() {
             <CardTitle className="text-sm font-medium">Monthly Revenue</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${stats.monthlyRevenue.toFixed(2)}</div>
+            <div className="text-2xl font-bold">{getCurrencySymbol(workspaceSettings.currency || 'MYR')} {stats.monthlyRevenue.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
               From billable hours
             </p>

@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { InvoiceGenerationModal } from "@/components/modals/InvoiceGenerationModal"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportInvoiceToPdf } from "@/lib/pdf-export"
+import { getCurrencySymbol } from "@/lib/excel-export"
 
 interface Invoice {
   id: string
@@ -27,6 +28,7 @@ export default function Invoices() {
   const [invoices, setInvoices] = useState<Invoice[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const { currentWorkspace } = useWorkspace()
 
   const fetchInvoices = async () => {
@@ -50,8 +52,24 @@ export default function Invoices() {
     }
   }
 
+  const fetchWorkspaceSettings = async () => {
+    if (!currentWorkspace) return
+    
+    try {
+      const response = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace.id}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setWorkspaceSettings(data.settings || {})
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace settings:', error)
+    }
+  }
+
   useEffect(() => {
     fetchInvoices()
+    fetchWorkspaceSettings()
   }, [currentWorkspace])
 
   const handleGenerateInvoice = async (invoiceData: any) => {
@@ -207,7 +225,7 @@ export default function Invoices() {
                     <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span>Issued: {invoice.dateIssued}</span>
                       <span>Due: {invoice.dueDate}</span>
-                      <span className="font-medium text-foreground">Total: ${invoice.total.toFixed(2)}</span>
+                      <span className="font-medium text-foreground">Total: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {invoice.total.toFixed(2)}</span>
                     </div>
                   </div>
                   <div className="flex gap-2">

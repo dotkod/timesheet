@@ -5,9 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ClientModal } from "@/components/modals/ClientModal"
+import { ClientDetailsModal } from "@/components/modals/ClientDetailsModal"
 import { DeleteModal } from "@/components/modals/DeleteModal"
 import { useWorkspace } from "@/lib/workspace-context"
-import { exportClientsToExcel } from "@/lib/excel-export"
+import { exportClientsToExcel, getCurrencySymbol } from "@/lib/excel-export"
+import dayjs from "dayjs"
 
 interface Client {
   id: string
@@ -28,6 +30,7 @@ export default function Clients() {
   const [clients, setClients] = useState<Client[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const { currentWorkspace } = useWorkspace()
 
   const fetchClients = async () => {
@@ -51,8 +54,24 @@ export default function Clients() {
     }
   }
 
+  const fetchWorkspaceSettings = async () => {
+    if (!currentWorkspace) return
+    
+    try {
+      const response = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace.id}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        setWorkspaceSettings(data.settings || {})
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace settings:', error)
+    }
+  }
+
   useEffect(() => {
     fetchClients()
+    fetchWorkspaceSettings()
   }, [currentWorkspace])
 
   const handleSaveClient = async (clientData: any) => {
@@ -203,17 +222,22 @@ export default function Clients() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Revenue:</span>
-                    <span className="font-medium">${client.totalRevenue.toFixed(2)}</span>
+                    <span className="font-medium">{getCurrencySymbol(workspaceSettings.currency || 'MYR')} {client.totalRevenue.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Last Contact:</span>
-                    <span className="font-medium">{client.lastContact}</span>
+                    <span className="font-medium">{client.lastContact ? dayjs(client.lastContact).format('DD MMMM YYYY') : 'N/A'}</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    View Details
-                  </Button>
+                  <ClientDetailsModal 
+                    client={client}
+                    trigger={
+                      <Button variant="outline" size="sm" className="flex-1">
+                        View Details
+                      </Button>
+                    }
+                  />
                   <ClientModal 
                     client={client} 
                     onSave={handleSaveClient}
