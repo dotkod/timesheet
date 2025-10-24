@@ -35,7 +35,7 @@ export function TopNav() {
   }
 
   return (
-    <Card className="w-full">
+    <Card className="w-full sticky top-0 z-50">
       {/* Desktop Layout */}
       <div className="hidden md:flex items-center justify-between p-4">
         <div className="flex items-center space-x-4">
@@ -77,7 +77,7 @@ export function TopNav() {
       </div>
 
       {/* Mobile Layout */}
-      <div className="md:hidden flex items-center justify-between p-4">
+      <div className="md:hidden flex items-center justify-between p-3 px-4">
         {/* Left: Burger Menu */}
         <Button 
           variant="ghost" 
