@@ -221,7 +221,7 @@ export default function Projects() {
                     <CardTitle className="text-lg">{project.name}</CardTitle>
                     <CardDescription>{project.code}</CardDescription>
                   </div>
-                  <div className="flex flex-col gap-1">
+                  <div className="flex gap-2">
                     <Badge 
                       variant="secondary" 
                       className={`${
