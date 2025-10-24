@@ -7,9 +7,9 @@ import {
   Home, 
   Clock, 
   FolderOpen, 
-  FileText
+  FileText, 
+  Settings
 } from "lucide-react"
-import { MobileWorkspaceSwitcher } from "./MobileWorkspaceSwitcher"
 
 export function BottomNav() {
   const pathname = usePathname()
@@ -47,6 +47,12 @@ export function BottomNav() {
       href: createLink('/invoices'),
       icon: FileText,
       path: '/invoices'
+    },
+    {
+      name: 'Settings',
+      href: createLink('/settings'),
+      icon: Settings,
+      path: '/settings'
     }
   ]
 
@@ -58,53 +64,25 @@ export function BottomNav() {
     <>
       {/* Bottom Navigation - Mobile Only */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border">
-        <div className="flex items-center justify-between py-3 px-4">
-          {/* Left: First 2 nav items */}
-          <div className="flex items-center space-x-4">
-            {navItems.slice(0, 2).map((item) => {
-              const Icon = item.icon
-              const active = isActive(item.path)
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
-                    active 
-                      ? 'text-primary bg-primary/10' 
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="h-6 w-6" />
-                </Link>
-              )
-            })}
-          </div>
-
-          {/* Center: Workspace Switcher */}
-          <MobileWorkspaceSwitcher />
-
-          {/* Right: Last 2 nav items */}
-          <div className="flex items-center space-x-4">
-            {navItems.slice(2, 4).map((item) => {
-              const Icon = item.icon
-              const active = isActive(item.path)
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
-                    active 
-                      ? 'text-primary bg-primary/10' 
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  <Icon className="h-6 w-6" />
-                </Link>
-              )
-            })}
-          </div>
+        <div className="flex items-center justify-center py-3 px-4">
+          {navItems.map((item) => {
+            const Icon = item.icon
+            const active = isActive(item.path)
+            
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors mx-2 ${
+                  active 
+                    ? 'text-primary bg-primary/10' 
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon className="h-6 w-6" />
+              </Link>
+            )
+          })}
         </div>
       </div>
     </>
