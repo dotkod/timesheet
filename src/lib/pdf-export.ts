@@ -187,8 +187,8 @@ function replaceTemplatePlaceholders(templateHtml: string, invoiceData: InvoiceD
   
   // Replace invoice placeholders
   html = html.replace(/\{\{invoice\.number\}\}/g, invoiceData.invoiceNumber)
-  html = html.replace(/\{\{invoice\.date\}\}/g, invoiceData.dateIssued)
-  html = html.replace(/\{\{invoice\.dueDate\}\}/g, invoiceData.dueDate)
+  html = html.replace(/\{\{invoice\.date\}\}/g, dayjs(invoiceData.dateIssued).format('DD MMM YYYY'))
+  html = html.replace(/\{\{invoice\.dueDate\}\}/g, dayjs(invoiceData.dueDate).format('DD MMM YYYY'))
   html = html.replace(/\{\{invoice\.description\}\}/g, invoiceData.description)
   // Get currency symbol based on workspace settings
   const currencySymbol = getCurrencySymbol(workspaceData.currency || 'MYR')
@@ -259,7 +259,7 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
               
               <!-- Date (Far Right) -->
               <div style="text-align: right; flex: 1;">
-                <p style="margin: 0; font-size: 12px; color: #000;">Date: ${invoiceData.dateIssued}</p>
+                <p style="margin: 0; font-size: 12px; color: #000;">Date: ${dayjs(invoiceData.dateIssued).format('DD MMM YYYY')}</p>
               </div>
             </div>
           </div>
