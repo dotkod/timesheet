@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { TimesheetModal } from "@/components/modals/TimesheetModal"
 import { TimesheetDetailsModal } from "@/components/modals/TimesheetDetailsModal"
 import { DeleteModal } from "@/components/modals/DeleteModal"
+import { TimesheetChatBot } from "@/components/ui/TimesheetChatBot"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportTimesheetsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
@@ -295,6 +296,11 @@ export default function Timesheets() {
             </Card>
           ))
         )}
+      </div>
+
+      {/* Desktop Chat Bot */}
+      <div className="hidden md:block">
+        <TimesheetChatBot projects={projects} onSave={handleSaveTimesheet} />
       </div>
     </div>
   )
