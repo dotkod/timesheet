@@ -18,6 +18,7 @@ export function FloatingActionButton() {
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState("")
   const { currentWorkspace } = useWorkspace()
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export function FloatingActionButton() {
 
   const handleSave = async (timesheetData: any) => {
     try {
+      setError("") // Clear any previous errors
       const response = await fetch('/api/timesheets', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,15 +57,18 @@ export function FloatingActionButton() {
         })
       })
       
+      const data = await response.json()
+      
       if (response.ok) {
         setOpen(false)
         // Refresh the page to show new timesheet
         window.location.reload()
       } else {
-        const data = await response.json()
+        setError(data.error || "Failed to create timesheet entry")
         console.error('Failed to save timesheet:', data.error)
       }
     } catch (error) {
+      setError("Network error. Please try again.")
       console.error('Network error:', error)
     }
   }
@@ -74,17 +79,24 @@ export function FloatingActionButton() {
   }
 
   return (
-    <TimesheetModal 
-      projects={projects}
-      onSave={handleSave}
-      trigger={
-        <Button
-          size="lg"
-          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
-        >
-          <Plus className="h-6 w-6" />
-        </Button>
-      }
-    />
+    <>
+      {error && (
+        <div className="fixed bottom-20 right-6 z-50 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-lg max-w-sm">
+          {error}
+        </div>
+      )}
+      <TimesheetModal 
+        projects={projects}
+        onSave={handleSave}
+        trigger={
+          <Button
+            size="lg"
+            className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all duration-200 bg-primary hover:bg-primary/90"
+          >
+            <Plus className="h-6 w-6" />
+          </Button>
+        }
+      />
+    </>
   )
 }

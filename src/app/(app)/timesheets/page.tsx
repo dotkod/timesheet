@@ -107,6 +107,7 @@ export default function Timesheets() {
 
   const handleSaveTimesheet = async (timesheetData: any) => {
     try {
+      setError("") // Clear any previous errors
       const method = timesheetData.id ? 'PUT' : 'POST'
       
       const response = await fetch('/api/timesheets', {
