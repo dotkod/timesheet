@@ -33,6 +33,7 @@ interface Message {
   type: 'bot' | 'user'
   content: string
   timestamp: Date
+  suggestions?: string[]
 }
 
 interface TimesheetChatBotProps {
@@ -60,16 +61,18 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
 
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      addBotMessage("Hi! I'm here to help you create a timesheet entry. Let's start with today's date. What date did you work on? (e.g., 2025-01-15)")
+      const today = new Date().toISOString().split('T')[0]
+      addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
     }
   }, [isOpen])
 
-  const addBotMessage = (content: string) => {
+  const addBotMessage = (content: string, suggestions?: string[]) => {
     const message: Message = {
       id: Date.now().toString(),
       type: 'bot',
       content,
-      timestamp: new Date()
+      timestamp: new Date(),
+      suggestions
     }
     setMessages(prev => [...prev, message])
   }
@@ -92,39 +95,41 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
       switch (currentStep) {
         case 'greeting':
         case 'date':
-          // Parse date input
-          const dateMatch = input.match(/(\d{4}-\d{2}-\d{2})|(\d{1,2}\/\d{1,2}\/\d{4})|(\d{1,2}-\d{1,2}-\d{4})|today|yesterday/i)
-          if (dateMatch) {
-            let date = ''
-            if (input.toLowerCase() === 'today') {
-              date = new Date().toISOString().split('T')[0]
-            } else if (input.toLowerCase() === 'yesterday') {
-              const yesterday = new Date()
-              yesterday.setDate(yesterday.getDate() - 1)
-              date = yesterday.toISOString().split('T')[0]
-            } else {
-              // Try to parse various date formats
+          // Handle date suggestions and input
+          if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('today')) {
+            const today = new Date().toISOString().split('T')[0]
+            setTimesheetData(prev => ({ ...prev, date: today }))
+            setCurrentStep('project')
+            setTimeout(() => {
+              addBotMessage(`Perfect! Date set to ${today}. Now, which project did you work on?`, projects.map(p => p.name))
+            }, 500)
+          } else if (input.toLowerCase().includes('yesterday')) {
+            const yesterday = new Date()
+            yesterday.setDate(yesterday.getDate() - 1)
+            const yesterdayStr = yesterday.toISOString().split('T')[0]
+            setTimesheetData(prev => ({ ...prev, date: yesterdayStr }))
+            setCurrentStep('project')
+            setTimeout(() => {
+              addBotMessage(`Great! Date set to ${yesterdayStr}. Now, which project did you work on?`, projects.map(p => p.name))
+            }, 500)
+          } else {
+            // Parse custom date input
+            const dateMatch = input.match(/(\d{4}-\d{2}-\d{2})|(\d{1,2}\/\d{1,2}\/\d{4})|(\d{1,2}-\d{1,2}-\d{4})/i)
+            if (dateMatch) {
               const parsedDate = new Date(input)
               if (!isNaN(parsedDate.getTime())) {
-                date = parsedDate.toISOString().split('T')[0]
+                const dateStr = parsedDate.toISOString().split('T')[0]
+                setTimesheetData(prev => ({ ...prev, date: dateStr }))
+                setCurrentStep('project')
+                setTimeout(() => {
+                  addBotMessage(`Got it! Date set to ${dateStr}. Now, which project did you work on?`, projects.map(p => p.name))
+                }, 500)
+              } else {
+                addBotMessage("I couldn't understand that date format. Please try again with a format like '2025-01-15' or use the suggestions above.")
               }
-            }
-            
-            if (date) {
-              setTimesheetData(prev => ({ ...prev, date }))
-              setCurrentStep('project')
-              setTimeout(() => {
-                addBotMessage(`Great! Date set to ${date}. Now, which project did you work on? Here are your available projects:`)
-                projects.forEach(project => {
-                  addBotMessage(`• ${project.name} (${project.client.name})`)
-                })
-                addBotMessage("Just type the project name or number.")
-              }, 500)
             } else {
-              addBotMessage("I couldn't understand that date format. Please try again with a format like '2025-01-15', 'today', or 'yesterday'.")
+              addBotMessage("Please provide a valid date. You can use formats like '2025-01-15' or click one of the suggestions above.")
             }
-          } else {
-            addBotMessage("Please provide a valid date. You can use formats like '2025-01-15', 'today', or 'yesterday'.")
           }
           break
 
@@ -139,10 +144,10 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
             setTimesheetData(prev => ({ ...prev, projectId: project.id }))
             setCurrentStep('hours')
             setTimeout(() => {
-              addBotMessage(`Perfect! Selected ${project.name}. How many hours did you work? (e.g., 4, 2.5, 1.5)`)
+              addBotMessage(`Perfect! Selected ${project.name}. How many hours did you work?`, ['1h', '2h', '4h', '6h', '8h'])
             }, 500)
           } else {
-            addBotMessage("I couldn't find that project. Please try typing the exact project name or client name from the list above.")
+            addBotMessage("I couldn't find that project. Please try typing the exact project name or click one of the suggestions above.", projects.map(p => p.name))
           }
           break
 
@@ -155,13 +160,13 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
               setTimesheetData(prev => ({ ...prev, hours }))
               setCurrentStep('description')
               setTimeout(() => {
-                addBotMessage(`Got it! ${hours} hours logged. Now, what did you work on? Please describe the tasks or activities you completed.`)
+                addBotMessage(`Got it! ${hours} hours logged. Now, what did you work on? Please describe the tasks or activities you completed.`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
               }, 500)
             } else {
-              addBotMessage("Please enter a valid number of hours between 0.25 and 24.")
+              addBotMessage("Please enter a valid number of hours between 0.25 and 24.", ['1h', '2h', '4h', '6h', '8h'])
             }
           } else {
-            addBotMessage("Please enter a valid number of hours (e.g., 4, 2.5, 1.5).")
+            addBotMessage("Please enter a valid number of hours (e.g., 4, 2.5, 1.5).", ['1h', '2h', '4h', '6h', '8h'])
           }
           break
 
@@ -180,7 +185,7 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
               addBotMessage(`⏰ Hours: ${timesheetData.hours}`)
               addBotMessage(`📝 Description: ${input.trim()}`)
               addBotMessage(`💰 Billable: ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}`)
-              addBotMessage("Does this look correct? Type 'yes' to save or 'no' to start over.")
+              addBotMessage("Does this look correct?", ['Yes, save it', 'No, start over'])
             }, 500)
           } else {
             addBotMessage("Please provide a description of what you worked on.")
@@ -188,7 +193,7 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
           break
 
         case 'confirm':
-          if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('y')) {
+          if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('save')) {
             const selectedProject = projects.find(p => p.id === timesheetData.projectId)
             const isFixedProject = selectedProject?.billingType === 'fixed'
             
@@ -208,12 +213,16 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
                 resetChat()
               }, 2000)
             }, 1000)
-          } else if (input.toLowerCase().includes('no') || input.toLowerCase().includes('n')) {
-            addBotMessage("No problem! Let's start over. What date did you work on?")
-            setCurrentStep('date')
-            setTimesheetData({})
+          } else if (input.toLowerCase().includes('no') || input.toLowerCase().includes('start over')) {
+            addBotMessage("No problem! Let's start over.")
+            setTimeout(() => {
+              const today = new Date().toISOString().split('T')[0]
+              addBotMessage(`Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
+              setCurrentStep('date')
+              setTimesheetData({})
+            }, 500)
           } else {
-            addBotMessage("Please type 'yes' to save or 'no' to start over.")
+            addBotMessage("Please click one of the suggestions above or type 'yes' to save or 'no' to start over.", ['Yes, save it', 'No, start over'])
           }
           break
       }
@@ -230,7 +239,8 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
     setTimesheetData({})
     setInputValue("")
     setTimeout(() => {
-      addBotMessage("Hi! I'm here to help you create a timesheet entry. Let's start with today's date. What date did you work on? (e.g., 2025-01-15)")
+      const today = new Date().toISOString().split('T')[0]
+      addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
     }, 500)
   }
 
@@ -246,7 +256,8 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
     setIsOpen(open)
     if (open && messages.length === 0) {
       setTimeout(() => {
-        addBotMessage("Hi! I'm here to help you create a timesheet entry. Let's start with today's date. What date did you work on? (e.g., 2025-01-15)")
+        const today = new Date().toISOString().split('T')[0]
+        addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
       }, 300)
     }
   }
@@ -303,6 +314,29 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
                     </div>
                   </div>
                 ))}
+                {messages.map((message) => 
+                  message.suggestions && message.suggestions.length > 0 && (
+                    <div key={`suggestions-${message.id}`} className="flex justify-start">
+                      <div className="flex flex-wrap gap-2">
+                        {message.suggestions.map((suggestion, index) => (
+                          <Button
+                            key={index}
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7 px-2"
+                            onClick={() => {
+                              setInputValue(suggestion)
+                              processUserInput(suggestion)
+                            }}
+                            disabled={isProcessing}
+                          >
+                            {suggestion}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                )}
                 {isProcessing && (
                   <div className="flex justify-start">
                     <div className="bg-muted text-foreground rounded-lg px-3 py-2 text-sm">
