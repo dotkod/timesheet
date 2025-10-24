@@ -330,8 +330,8 @@ Does this look correct?`
         ))}
       </div>
 
-      {/* Input Area - Fixed at bottom */}
-      <div className="bg-background border-t border-border p-4 pb-32">
+            {/* Input Area - Fixed at bottom */}
+            <div className="bg-background border-t border-border p-4">
         <div className="flex items-center space-x-2">
           <Input
             value={inputValue}

@@ -56,11 +56,19 @@ export function MobileWorkspaceSwitcher() {
 
   return (
     <button
-      className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 hover:bg-muted"
+      className="flex items-center justify-between w-full px-4 py-3 rounded-lg border border-border bg-background hover:bg-muted transition-all duration-200"
       onClick={handleWorkspaceToggle}
       title={`Switch to next workspace (${workspaces.length} available)`}
     >
-      <Building2 className="h-6 w-6" />
+      <div className="flex items-center space-x-2">
+        <Building2 className="h-4 w-4" />
+        <span className="text-sm font-medium">
+          {currentWorkspace?.name || 'Select Workspace'}
+        </span>
+      </div>
+      <span className="text-xs text-muted-foreground">
+        {workspaces.length > 1 ? 'Tap to switch' : ''}
+      </span>
     </button>
   )
 }
