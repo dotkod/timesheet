@@ -139,6 +139,8 @@ export default function Invoices() {
         const clientResponse = await fetch(`/api/clients?workspaceId=${currentWorkspace?.id}`)
         const clientData = await clientResponse.json()
         const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
+        
+        console.log('Client data:', client) // Debug log
 
         // Fetch workspace settings for company info
         const settingsResponse = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace?.id}`)

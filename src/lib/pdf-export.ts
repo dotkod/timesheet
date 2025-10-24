@@ -122,6 +122,8 @@ function getCurrencySymbol(currency: string): string {
 function replaceTemplatePlaceholders(templateHtml: string, invoiceData: InvoiceData, workspaceData: WorkspaceData): string {
   let html = templateHtml
   
+  console.log('Invoice data for PDF:', invoiceData) // Debug log
+  
   // Replace workspace placeholders
   html = html.replace(/\{\{workspace\.name\}\}/g, workspaceData.name || '')
   html = html.replace(/\{\{workspace\.address\}\}/g, workspaceData.address || '')
@@ -204,16 +206,6 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
             </div>
           </div>
       
-      <!-- Invoice Description Section -->
-      ${invoiceData.description ? `
-        <div style="margin-bottom: 25px;">
-          <h3 style="margin: 0 0 10px 0; font-size: 16px; font-weight: bold; color: #000;">Invoice Description:</h3>
-          <div style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #000; font-size: 14px; line-height: 1.5; color: #000;">
-            ${invoiceData.description.replace(/\n/g, '<br>')}
-          </div>
-        </div>
-      ` : ''}
-      
       <!-- Items Table -->
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 25px; border: 1px solid #000;">
         <thead>
@@ -224,9 +216,18 @@ function createDefaultInvoiceHTML(invoiceData: InvoiceData, workspaceData: Works
           </tr>
         </thead>
         <tbody>
+          ${invoiceData.description ? `
+            <tr>
+              <td style="border: 1px solid #000; padding: 12px; text-align: left; font-size: 14px; color: #000;">1</td>
+              <td style="border: 1px solid #000; padding: 12px; font-size: 14px; color: #000;">
+                ${invoiceData.description.replace(/\n/g, '<br>')}
+              </td>
+              <td style="border: 1px solid #000; padding: 12px; text-align: right; font-size: 14px; font-weight: bold; color: #000;">${currencySymbol} ${invoiceData.total.toFixed(2)}</td>
+            </tr>
+          ` : ''}
           ${invoiceData.items.map((item, index) => `
             <tr>
-              <td style="border: 1px solid #000; padding: 12px; text-align: left; font-size: 14px; color: #000;">${index + 1}</td>
+              <td style="border: 1px solid #000; padding: 12px; text-align: left; font-size: 14px; color: #000;">${invoiceData.description ? index + 2 : index + 1}</td>
               <td style="border: 1px solid #000; padding: 12px; font-size: 14px; color: #000;">
                 <div style="margin-bottom: 5px; font-weight: bold; font-size: 14px;">${item.description}</div>
                 ${item.description.includes('Development Support') ? `
