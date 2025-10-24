@@ -64,7 +64,7 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
       const today = new Date().toISOString().split('T')[0]
       addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
     }
-  }, [isOpen])
+  }, [isOpen, messages.length])
 
   const addBotMessage = (content: string, suggestions?: string[]) => {
     const message: Message = {
@@ -254,121 +254,122 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open)
-    if (open && messages.length === 0) {
-      setTimeout(() => {
-        const today = new Date().toISOString().split('T')[0]
-        addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
-      }, 300)
-    }
   }
 
   if (!currentWorkspace) return null
 
   return (
     <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-      <Card className="w-96 max-h-96 shadow-lg">
-        <CardContent className="p-0">
-          {/* Chat Header */}
-          <div className="flex items-center justify-between p-3 border-b bg-muted/30">
-            <div className="flex items-center gap-2">
-              <Bot className="h-4 w-4 text-blue-600" />
-              <span className="text-sm font-medium">Timesheet Assistant</span>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => handleOpenChange(!isOpen)}
-              className="h-6 w-6 p-0"
-            >
-              {isOpen ? <X className="h-3 w-3" /> : <Send className="h-3 w-3" />}
-            </Button>
-          </div>
-
-          {/* Chat Messages */}
-          {isOpen && (
-            <>
-              <div className="h-64 overflow-y-auto p-3 space-y-3">
-                {messages.map((message) => (
-                  <div
-                    key={message.id}
-                    className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div
-                      className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
-                        message.type === 'user'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-muted text-foreground'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 mb-1">
-                        {message.type === 'user' ? (
-                          <User className="h-3 w-3" />
-                        ) : (
-                          <Bot className="h-3 w-3" />
-                        )}
-                        <span className="text-xs opacity-70">
-                          {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      <div className="whitespace-pre-wrap">{message.content}</div>
-                    </div>
-                  </div>
-                ))}
-                {messages.map((message) => 
-                  message.suggestions && message.suggestions.length > 0 && (
-                    <div key={`suggestions-${message.id}`} className="flex justify-start">
-                      <div className="flex flex-wrap gap-2">
-                        {message.suggestions.map((suggestion, index) => (
-                          <Button
-                            key={index}
-                            variant="outline"
-                            size="sm"
-                            className="text-xs h-7 px-2"
-                            onClick={() => {
-                              setInputValue(suggestion)
-                              processUserInput(suggestion)
-                            }}
-                            disabled={isProcessing}
-                          >
-                            {suggestion}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                )}
-                {isProcessing && (
-                  <div className="flex justify-start">
-                    <div className="bg-muted text-foreground rounded-lg px-3 py-2 text-sm">
-                      <div className="flex items-center gap-2">
-                        <Bot className="h-3 w-3" />
-                        <span className="animate-pulse">Thinking...</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-                <div ref={messagesEndRef} />
+      {!isOpen ? (
+        // Icon-only state
+        <Button
+          onClick={() => handleOpenChange(true)}
+          className="h-12 w-12 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
+        >
+          <Bot className="h-6 w-6 text-white" />
+        </Button>
+      ) : (
+        // Full chat state
+        <Card className="w-96 max-h-96 shadow-lg">
+          <CardContent className="p-0">
+            {/* Chat Header */}
+            <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+              <div className="flex items-center gap-2">
+                <Bot className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium">Timesheet Assistant</span>
               </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleOpenChange(false)}
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
 
-              {/* Input */}
-              <form onSubmit={handleSubmit} className="p-3 border-t">
-                <div className="flex gap-2">
-                  <Input
-                    value={inputValue}
-                    onChange={(e) => setInputValue(e.target.value)}
-                    placeholder="Type your response..."
-                    className="flex-1"
-                    disabled={isProcessing}
-                  />
-                  <Button type="submit" size="sm" disabled={isProcessing || !inputValue.trim()}>
-                    <Send className="h-4 w-4" />
-                  </Button>
+            {/* Chat Messages */}
+            <div className="h-64 overflow-y-auto p-3 space-y-3">
+              {messages.map((message) => (
+                <div
+                  key={message.id}
+                  className={`flex ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div
+                    className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                      message.type === 'user'
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-muted text-foreground'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {message.type === 'user' ? (
+                        <User className="h-3 w-3" />
+                      ) : (
+                        <Bot className="h-3 w-3" />
+                      )}
+                      <span className="text-xs opacity-70">
+                        {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                    <div className="whitespace-pre-wrap">{message.content}</div>
+                  </div>
                 </div>
-              </form>
-            </>
-          )}
-        </CardContent>
-      </Card>
+              ))}
+              {messages.map((message) => 
+                message.suggestions && message.suggestions.length > 0 && (
+                  <div key={`suggestions-${message.id}`} className="flex justify-start">
+                    <div className="flex flex-wrap gap-2">
+                      {message.suggestions.map((suggestion, index) => (
+                        <Button
+                          key={index}
+                          variant="outline"
+                          size="sm"
+                          className="text-xs h-7 px-2"
+                          onClick={() => {
+                            setInputValue(suggestion)
+                            processUserInput(suggestion)
+                          }}
+                          disabled={isProcessing}
+                        >
+                          {suggestion}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                )
+              )}
+              {isProcessing && (
+                <div className="flex justify-start">
+                  <div className="bg-muted text-foreground rounded-lg px-3 py-2 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-3 w-3" />
+                      <span className="animate-pulse">Thinking...</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              <div ref={messagesEndRef} />
+            </div>
+
+            {/* Input */}
+            <form onSubmit={handleSubmit} className="p-3 border-t">
+              <div className="flex gap-2">
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  placeholder="Type your response..."
+                  className="flex-1"
+                  disabled={isProcessing}
+                />
+                <Button type="submit" size="sm" disabled={isProcessing || !inputValue.trim()}>
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
