@@ -129,7 +129,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, name, code, clientId, hourlyRate, status, notes } = body
+    const { id, name, code, clientId, billingType, hourlyRate, fixedAmount, status, notes } = body
 
     if (!id || !name) {
       return NextResponse.json({ error: 'ID and name are required' }, { status: 400 })
@@ -141,7 +141,9 @@ export async function PUT(request: NextRequest) {
         client_id: clientId,
         name,
         code,
-        hourly_rate: hourlyRate || 0,
+        billing_type: billingType || 'hourly',
+        hourly_rate: billingType === 'hourly' ? (hourlyRate || 0) : 0,
+        fixed_amount: billingType === 'fixed' ? (fixedAmount || 0) : 0,
         status: status || 'active',
         notes
       })

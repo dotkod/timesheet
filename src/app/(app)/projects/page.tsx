@@ -221,16 +221,26 @@ export default function Projects() {
                     <CardTitle className="text-lg">{project.name}</CardTitle>
                     <CardDescription>{project.code}</CardDescription>
                   </div>
-                  <Badge 
-                    variant="secondary" 
-                    className={`${
-                      project.status === 'active' ? 'bg-green-100 text-green-800' :
-                      project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                      'bg-yellow-100 text-yellow-800'
-                    }`}
-                  >
-                    {project.status}
-                  </Badge>
+                  <div className="flex flex-col gap-1">
+                    <Badge 
+                      variant="secondary" 
+                      className={`${
+                        project.status === 'active' ? 'bg-green-100 text-green-800' :
+                        project.status === 'completed' ? 'bg-blue-100 text-blue-800' :
+                        'bg-yellow-100 text-yellow-800'
+                      }`}
+                    >
+                      {project.status}
+                    </Badge>
+                    <Badge 
+                      variant="outline"
+                      className={`${
+                        project.billingType === 'fixed' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'
+                      }`}
+                    >
+                      {project.billingType === 'fixed' ? 'Fixed Monthly' : 'Hourly'}
+                    </Badge>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent>
@@ -240,8 +250,13 @@ export default function Projects() {
                     <span className="font-medium">{project.client}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Rate:</span>
-                    <span className="font-medium">{getCurrencySymbol(workspaceSettings.currency || 'MYR')} {project.hourlyRate}/h</span>
+                    <span className="text-muted-foreground">Billing:</span>
+                    <span className="font-medium">
+                      {project.billingType === 'fixed' 
+                        ? `${getCurrencySymbol(workspaceSettings.currency || 'MYR')} ${project.fixedAmount}/month`
+                        : `${getCurrencySymbol(workspaceSettings.currency || 'MYR')} ${project.hourlyRate}/h`
+                      }
+                    </span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Hours:</span>
