@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
@@ -26,6 +26,8 @@ interface Project {
   client: {
     name: string
   }
+  billingType?: "hourly" | "fixed"
+  fixedAmount?: number
 }
 
 interface TimesheetModalProps {
@@ -45,6 +47,16 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
     billable: timesheet?.billable ?? true,
     ...(timesheet?.id && { id: timesheet.id })
   })
+
+  // Handle initial state for fixed projects when editing
+  useEffect(() => {
+    if (timesheet?.projectId) {
+      const project = projects.find(p => p.id === timesheet.projectId)
+      if (project?.billingType === 'fixed') {
+        setFormData(prev => ({ ...prev, billable: false }))
+      }
+    }
+  }, [timesheet?.projectId, projects])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,8 +80,24 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
   }
 
   const handleChange = (field: keyof Timesheet, value: string | number | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value }
+      
+      // If project changed, check if it's a fixed monthly project
+      if (field === 'projectId') {
+        const selectedProject = projects.find(p => p.id === value)
+        if (selectedProject?.billingType === 'fixed') {
+          newData.billable = false // Fixed projects are not billable per timesheet
+        }
+      }
+      
+      return newData
+    })
   }
+
+  // Get selected project to check billing type
+  const selectedProject = projects.find(p => p.id === formData.projectId)
+  const isFixedProject = selectedProject?.billingType === 'fixed'
 
   const defaultTrigger = timesheet ? (
     <Button variant="outline" size="sm">
@@ -162,26 +190,29 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
               />
               <p className="text-xs text-muted-foreground">Enter hours in decimal format (e.g., 1.5 for 1 hour 30 minutes)</p>
             </div>
-            <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Billable Status
-              </Label>
-              <Card className="p-4">
-                <CardContent className="p-0">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Billable to Client</p>
-                      <p className="text-xs text-muted-foreground">This time entry will be included in invoices</p>
+            {/* Only show billable status for hourly projects */}
+            {!isFixedProject && (
+              <div className="space-y-2">
+                <Label className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4" />
+                  Billable Status
+                </Label>
+                <Card className="p-4">
+                  <CardContent className="p-0">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium">Billable to Client</p>
+                        <p className="text-xs text-muted-foreground">This time entry will be included in invoices</p>
+                      </div>
+                      <Switch
+                        checked={formData.billable}
+                        onCheckedChange={(checked) => handleChange("billable", checked)}
+                      />
                     </div>
-                    <Switch
-                      checked={formData.billable}
-                      onCheckedChange={(checked) => handleChange("billable", checked)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
           </div>
 
           {/* Description */}

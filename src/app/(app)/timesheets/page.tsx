@@ -217,32 +217,32 @@ export default function Timesheets() {
           </Card>
         ) : (
           timesheets.map((timesheet) => (
-            <Card key={timesheet.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold">{timesheet.project}</h3>
-                      <Badge variant="outline">{timesheet.client}</Badge>
+            <Card key={timesheet.id} className="hover:shadow-sm transition-shadow">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-sm font-medium truncate">{timesheet.project}</h3>
+                      <Badge variant="outline" className="text-xs">{timesheet.client}</Badge>
                       {timesheet.billable && (
-                        <Badge className="bg-green-100 text-green-800">Billable</Badge>
+                        <Badge className="bg-green-100 text-green-800 text-xs">Billable</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">{timesheet.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                      <span>Date: {timesheet.date}</span>
-                      <span>Hours: {timesheet.hours}</span>
-                      <span>Rate: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {timesheet.hourlyRate}/h</span>
-                      <span className="font-medium text-foreground">Total: {getCurrencySymbol(workspaceSettings.currency || 'MYR')} {timesheet.total.toFixed(2)}</span>
+                    <p className="text-xs text-muted-foreground truncate mb-2">{timesheet.description}</p>
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                      <span>{timesheet.date}</span>
+                      <span>{timesheet.hours}h</span>
+                      <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</span>
+                      <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-1 ml-4">
                     <TimesheetModal 
                       timesheet={timesheet} 
                       projects={projects}
                       onSave={handleSaveTimesheet}
                       trigger={
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="h-8 px-2">
                           Edit
                         </Button>
                       }
