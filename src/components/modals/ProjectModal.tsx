@@ -85,7 +85,7 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{project ? "Edit Project" : "Add New Project"}</DialogTitle>
           <DialogDescription>

@@ -245,7 +245,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" />Generate Invoice</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[1000px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Generate New Invoice</DialogTitle>
           <DialogDescription>

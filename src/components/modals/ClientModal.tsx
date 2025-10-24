@@ -73,7 +73,7 @@ export function ClientModal({ client, onSave, trigger }: ClientModalProps) {
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[425px] w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[425px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{client ? "Edit Client" : "Add New Client"}</DialogTitle>
           <DialogDescription>

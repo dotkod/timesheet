@@ -81,7 +81,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -107,6 +107,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 onChange={(e) => handleChange("date", e.target.value)}
                 required
                 className="h-11"
+                autoFocus={false}
               />
             </div>
             <div className="space-y-2">
@@ -150,6 +151,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 placeholder="0.00"
                 required
                 className="h-11"
+                autoFocus={false}
               />
               <p className="text-xs text-muted-foreground">Enter hours in decimal format (e.g., 1.5 for 1 hour 30 minutes)</p>
             </div>
@@ -189,6 +191,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
               placeholder="Describe what you worked on... (e.g., 'Fixed login bug', 'Implemented user dashboard', 'Code review')"
               required
               className="resize-none"
+              autoFocus={false}
             />
             <p className="text-xs text-muted-foreground">Be specific about the work completed</p>
           </div>

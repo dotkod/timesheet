@@ -46,7 +46,7 @@ export function ClientDetailsModal({ client, trigger }: ClientDetailsModalProps)
       <DialogTrigger asChild>
         {trigger || <Button variant="outline" size="sm"><Eye className="h-4 w-4 mr-2" />View Details</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Eye className="h-5 w-5" />

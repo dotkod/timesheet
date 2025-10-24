@@ -52,7 +52,7 @@ export function InvoiceTemplateModal({ template, onSave, trigger }: InvoiceTempl
       <DialogTrigger asChild>
         {trigger || <Button><Plus className="h-4 w-4 mr-2" />Create New Template</Button>}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[1000px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{template ? 'Edit Template' : 'Create New Template'}</DialogTitle>
           <DialogDescription>
