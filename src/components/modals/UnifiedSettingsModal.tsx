@@ -96,23 +96,19 @@ export function UnifiedSettingsModal({ settings, onSave, trigger }: UnifiedSetti
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button><Edit className="h-4 w-4 mr-2" />Edit All Settings</Button>}
+        {trigger || <Button><Edit className="h-4 w-4 mr-2" />Edit Settings</Button>}
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit All Settings</DialogTitle>
+          <DialogTitle>Settings</DialogTitle>
           <DialogDescription>
-            Update your workspace information, billing settings, and preferences all in one place.
+            Update your workspace settings and preferences.
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-8">
           
           {/* Workspace Information Section */}
           <div className="space-y-4">
-            <div className="border-b pb-2">
-              <h3 className="text-lg font-semibold">Workspace Information</h3>
-              <p className="text-sm text-muted-foreground">Your company details and contact information</p>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="companyName">Company Name</Label>
@@ -170,10 +166,6 @@ export function UnifiedSettingsModal({ settings, onSave, trigger }: UnifiedSetti
 
           {/* Billing Settings Section */}
           <div className="space-y-4">
-            <div className="border-b pb-2">
-              <h3 className="text-lg font-semibold">Billing Settings</h3>
-              <p className="text-sm text-muted-foreground">Configure your billing preferences and tax settings</p>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="currency">Currency</Label>
@@ -240,10 +232,6 @@ export function UnifiedSettingsModal({ settings, onSave, trigger }: UnifiedSetti
 
           {/* Preferences Section */}
           <div className="space-y-4">
-            <div className="border-b pb-2">
-              <h3 className="text-lg font-semibold">Preferences</h3>
-              <p className="text-sm text-muted-foreground">Customize your application preferences</p>
-            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="timeFormat">Time Format</Label>
@@ -310,7 +298,7 @@ export function UnifiedSettingsModal({ settings, onSave, trigger }: UnifiedSetti
             </Button>
             <Button type="submit">
               <Save className="h-4 w-4 mr-2" />
-              Save All Settings
+              Save Settings
             </Button>
           </DialogFooter>
         </form>
