@@ -17,7 +17,7 @@ export default function AppLayout({
         <div className="min-h-screen min-h-dvh bg-background flex flex-col">
           <TopNav />
           <MobileHeader />
-          <main className="container mx-auto px-4 py-4 sm:py-8 flex-1 pb-20 md:pb-8">
+          <main className="container mx-auto px-4 py-4 sm:py-8 flex-1 pb-16 md:pb-8">
             {children}
           </main>
           <BottomNav />
