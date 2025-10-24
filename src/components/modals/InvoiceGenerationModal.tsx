@@ -68,8 +68,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
     templateId: "",
     dateIssued: new Date().toISOString().split('T')[0],
     dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-    description: "",
-    notes: ""
+    description: ""
   })
   const { currentWorkspace } = useWorkspace()
 
@@ -446,13 +445,25 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={invoiceData.notes}
-              onChange={(e) => setInvoiceData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Additional notes for the invoice..."
-              rows={3}
+            <Label htmlFor="description">Invoice Description</Label>
+            <Editor
+              apiKey="l83sjkylmyn9h2qo9h3wca1hhb07mq90afi5mhptqfyzt26i"
+              value={invoiceData.description}
+              onEditorChange={(content) => setInvoiceData(prev => ({ ...prev, description: content }))}
+              init={{
+                height: 200,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+              }}
             />
           </div>
         </div>

@@ -23,7 +23,6 @@ interface Invoice {
   dateIssued: string
   dueDate: string
   description: string
-  notes: string
   subtotal: number
   tax: number
   total: number
@@ -85,7 +84,6 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
     dateIssued: '',
     dueDate: '',
     description: '',
-    notes: '',
     status: 'draft'
   })
   const { currentWorkspace } = useWorkspace()
@@ -177,7 +175,6 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
         dateIssued: invoice.dateIssued || '',
         dueDate: invoice.dueDate || '',
         description: invoice.description || '',
-        notes: invoice.notes || '',
         status: invoice.status || 'draft'
       })
     }
@@ -449,18 +446,6 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
               </div>
             </div>
           )}
-
-          {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={invoiceData.notes}
-              onChange={(e) => setInvoiceData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Additional notes for the invoice..."
-              rows={3}
-            />
-          </div>
 
           {/* Invoice Summary */}
           {selectedClient && (clientTimesheets.length > 0 || clientFixedProjects.length > 0) && (
