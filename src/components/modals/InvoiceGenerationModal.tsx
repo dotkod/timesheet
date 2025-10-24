@@ -497,7 +497,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
           </Button>
           <Button 
             onClick={handleGenerate}
-            disabled={!selectedClient || !selectedTemplate || selectedTimesheets.length === 0}
+            disabled={!selectedClient || !selectedTemplate || (selectedTimesheets.length === 0 && selectedProjects.length === 0)}
             className="w-full sm:w-auto"
           >
             Generate Invoice
