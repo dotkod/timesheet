@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { InvoiceGenerationModal } from "@/components/modals/InvoiceGenerationModal"
+import { InvoiceEditModal } from "@/components/modals/InvoiceEditModal"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportInvoiceToPdf } from "@/lib/pdf-export"
 import { getCurrencySymbol } from "@/lib/excel-export"
@@ -12,14 +13,17 @@ import { getCurrencySymbol } from "@/lib/excel-export"
 interface Invoice {
   id: string
   invoiceNumber: string
+  clientId: string
   client: string
+  templateId: string
   dateIssued: string
   dueDate: string
+  description: string
+  notes: string
   status: "draft" | "sent" | "paid" | "overdue"
   subtotal: number
   tax: number
   total: number
-  description: string
   createdAt: string
   updatedAt: string
 }
@@ -90,6 +94,28 @@ export default function Invoices() {
         console.log('Invoice generated successfully:', data.invoice)
       } else {
         setError(data.error || "Failed to generate invoice")
+      }
+    } catch (error) {
+      setError("Network error. Please try again.")
+    }
+  }
+
+  const handleEditInvoice = async (invoiceData: any) => {
+    try {
+      const response = await fetch('/api/invoices', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...invoiceData,
+          workspaceId: currentWorkspace?.id
+        })
+      })
+      
+      if (response.ok) {
+        await fetchInvoices() // Refresh the list
+      } else {
+        const data = await response.json()
+        setError(data.error || "Failed to update invoice")
       }
     } catch (error) {
       setError("Network error. Please try again.")
@@ -234,9 +260,15 @@ export default function Invoices() {
                     <Button variant="outline" size="sm" onClick={() => exportInvoice(invoice.id)}>
                       Export PDF
                     </Button>
-                    <Button variant="outline" size="sm">
-                      Edit
-                    </Button>
+                    <InvoiceEditModal 
+                      invoice={invoice}
+                      onSave={handleEditInvoice}
+                      trigger={
+                        <Button variant="outline" size="sm">
+                          Edit
+                        </Button>
+                      }
+                    />
                   </div>
                 </div>
               </CardContent>
