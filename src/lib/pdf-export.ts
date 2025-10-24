@@ -32,6 +32,60 @@ interface WorkspaceData {
   currency?: string
 }
 
+export async function previewInvoiceToPdf(
+  invoiceData: InvoiceData,
+  workspaceData: WorkspaceData,
+  templateHtml?: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    // Create invoice HTML element
+    const invoiceElement = createInvoiceElement(invoiceData, workspaceData, templateHtml)
+    
+    // Temporarily add to DOM for rendering
+    document.body.appendChild(invoiceElement)
+    
+    // Generate canvas from HTML
+    const canvas = await html2canvas(invoiceElement, { 
+      scale: 2,
+      useCORS: true,
+      allowTaint: true,
+      backgroundColor: '#ffffff'
+    })
+    
+    // Remove element from DOM
+    document.body.removeChild(invoiceElement)
+    
+    // Create PDF
+    const imgData = canvas.toDataURL('image/png')
+    const pdf = new jsPDF('p', 'mm', 'a4')
+    
+    // Calculate dimensions
+    const imgProps = pdf.getImageProperties(imgData)
+    const pdfWidth = pdf.internal.pageSize.getWidth()
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width
+    
+    // Add image to PDF
+    pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight)
+    
+    // Generate PDF blob and open in new tab
+    const pdfBlob = pdf.output('blob')
+    const pdfUrl = URL.createObjectURL(pdfBlob)
+    
+    // Open in new tab
+    window.open(pdfUrl, '_blank')
+    
+    // Clean up URL after a delay
+    setTimeout(() => {
+      URL.revokeObjectURL(pdfUrl)
+    }, 1000)
+    
+    return { success: true }
+  } catch (error) {
+    console.error('PDF preview error:', error)
+    return { success: false, error: 'Failed to preview invoice PDF' }
+  }
+}
+
 export async function exportInvoiceToPdf(
   invoiceData: InvoiceData,
   workspaceData: WorkspaceData,

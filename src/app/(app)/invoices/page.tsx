@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { InvoiceGenerationModal } from "@/components/modals/InvoiceGenerationModal"
 import { InvoiceEditModal } from "@/components/modals/InvoiceEditModal"
 import { useWorkspace } from "@/lib/workspace-context"
-import { exportInvoiceToPdf } from "@/lib/pdf-export"
+import { exportInvoiceToPdf, previewInvoiceToPdf } from "@/lib/pdf-export"
 import { getCurrencySymbol } from "@/lib/excel-export"
 
 interface Invoice {
@@ -116,6 +116,69 @@ export default function Invoices() {
       } else {
         const data = await response.json()
         setError(data.error || "Failed to update invoice")
+      }
+    } catch (error) {
+      setError("Network error. Please try again.")
+    }
+  }
+
+  const previewInvoice = async (invoiceId: string) => {
+    try {
+      // Fetch invoice details with items
+      const response = await fetch(`/api/invoices?workspaceId=${currentWorkspace?.id}`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        const invoice = data.invoices.find((inv: any) => inv.id === invoiceId)
+        if (!invoice) {
+          setError("Invoice not found")
+          return
+        }
+
+        // Fetch client details
+        const clientResponse = await fetch(`/api/clients?workspaceId=${currentWorkspace?.id}`)
+        const clientData = await clientResponse.json()
+        const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
+        
+        console.log('Client data:', client) // Debug log
+
+        // Fetch workspace settings for company info
+        const settingsResponse = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace?.id}`)
+        const settingsData = await settingsResponse.json()
+        
+        const workspaceData = {
+          name: settingsData.settings?.companyName || currentWorkspace?.name || 'Company Name',
+          address: settingsData.settings?.address || '',
+          email: settingsData.settings?.email || '',
+          phone: settingsData.settings?.phone || '',
+          website: settingsData.settings?.website || ''
+        }
+
+        // Prepare invoice data for PDF export
+        const invoiceData = {
+          id: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          client: invoice.client,
+          clientAddress: client?.address || '',
+          clientPhone: client?.phone || '',
+          clientEmail: client?.email || '',
+          dateIssued: invoice.dateIssued,
+          dueDate: invoice.dueDate,
+          subtotal: invoice.subtotal,
+          tax: invoice.tax,
+          total: invoice.total,
+          description: invoice.description,
+          items: [] // TODO: Fetch invoice items from API
+        }
+
+        const result = await previewInvoiceToPdf(invoiceData, workspaceData)
+        if (result.success) {
+          console.log(`Previewed invoice in new tab`)
+        } else {
+          setError(result.error || "Failed to preview invoice")
+        }
+      } else {
+        setError(data.error || "Failed to fetch invoice details")
       }
     } catch (error) {
       setError("Network error. Please try again.")
@@ -267,6 +330,9 @@ export default function Invoices() {
                     </div>
                   </div>
                   <div className="flex gap-2">
+                    <Button variant="outline" size="sm" onClick={() => previewInvoice(invoice.id)}>
+                      Preview PDF
+                    </Button>
                     <Button variant="outline" size="sm" onClick={() => exportInvoice(invoice.id)}>
                       Export PDF
                     </Button>
