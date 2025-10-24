@@ -10,7 +10,7 @@ export default function MobileAssistantLayout({
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <WorkspaceProvider>
-        <div className="h-screen h-dvh bg-background flex flex-col">
+        <div className="h-screen h-dvh bg-background flex flex-col overflow-hidden">
           <div className="flex-1 overflow-hidden">
             {children}
           </div>
