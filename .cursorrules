@@ -1,0 +1,503 @@
+# .cursorrules
+# Timesheet - Cursor Rules (Next.js + Supabase + ShadCN UI, light mode)
+# App name suggestion: Timesheet (simple & descriptive)
+#
+# Overview:
+# Build a small, maintainable Timesheet & Invoice app:
+# - Next.js (App Router)
+# - Supabase (Auth disabled for multi-user; we use single-account env auth)
+# - ShadCN UI (light mode only)
+# - Single authorized user (credentials set via env)
+# - Workspace model (Dotkod + Personal, multiple invoice templates per workspace)
+# - Excel export (SheetJS)
+# - HTML -> PDF invoice export (client-side print/export)
+# - Host frontend on Vercel, DB on Supabase
+
+project:
+  name: Timesheet
+  framework: nextjs
+  router: app-router
+  ui: shadcn (light-mode)
+  db: supabase (Postgres)
+  deploy:
+    frontend: Vercel
+    backend: Supabase
+
+phases:
+  - phase: 0_init
+    title: Project scaffolding & environment
+    description: |
+      Create the Next.js app, install packages, configure ShadCN, connect to Supabase.
+    tasks:
+      - name: scaffold_next
+        run: |
+          # Use the Next.js template you prefer; e.g. with pnpm
+          pnpm create next-app@latest timesheet -- --typescript --eslint --src-dir --app
+          cd timesheet
+      - name: install_core_packages
+        run: |
+          pnpm add @supabase/supabase-js @supabase/auth-helpers-nextjs
+          pnpm add react-hook-form axios dayjs clsx
+          pnpm add xlsx file-saver jspdf html2canvas
+          # shadcn/ui + tailwind
+          pnpm add tailwindcss postcss autoprefixer
+          pnpm dlx shadcn-ui@latest init
+      - name: configure_tailwind
+        run: |
+          npx tailwindcss init -p
+          # Update tailwind.config.js & globals.css as per shadcn instructions
+      - name: repo_structure
+        create:
+          - app/(auth)
+          - app/(app)/dashboard
+          - app/(app)/workspaces
+          - components/ui
+          - lib
+          - prisma (optional)
+          - styles
+      - name: env_stub
+        file: .env.local
+        content: |
+          # Supabase
+          NEXT_PUBLIC_SUPABASE_URL=https://YOUR_SUPABASE_PROJECT.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=public-anon-key
+          SUPABASE_SERVICE_ROLE_KEY=service-role-key
+          # Single user auth (simple env-based)
+          TIMESHEET_ADMIN_USERNAME=admin@example.com
+          TIMESHEET_ADMIN_PASSWORD=supersecretpassword
+          # Vercel will have same env keys
+  - phase: 1_ui_design
+    title: UI (ShadCN - Light mode)
+    description: |
+      Build a minimal, consistent UI using ShadCN components and a simple design system (light mode only).
+      Focus on re-usable components and accessible UX.
+    tasks:
+      - name: theme
+        detail: Use the default ShadCN theme, lock to light mode by removing theme toggles.
+      - name: global_layout
+        create_files:
+          - path: app/layout.tsx
+            content: |
+              // Provide top navigation with workspace switcher, user menu, quick actions
+              // Use ShadCN Shell container with a centered content area
+      - name: nav_bar
+        create_files:
+          - path: components/ui/TopNav.tsx
+            content: |
+              // Contains: Logo on left (Timesheet), Workspace selector (dropdown),
+              // Links: Dashboard, Timesheets, Projects, Clients, Invoices, Settings
+      - name: workspace_switcher
+        create_files:
+          - path: components/ui/WorkspaceSwitcher.tsx
+            content: |
+              // Dropdown to switch workspace. Loads workspaces from /api/workspaces or supabase direct client.
+      - name: pages_and_routes
+        create_files:
+          - path: app/(app)/dashboard/page.tsx
+            content: |
+              // Dashboard: Recent timesheets, quick add, summary charts (small)
+          - path: app/(app)/workspaces/page.tsx
+            content: |
+              // List of workspaces with "Create workspace" button
+          - path: app/(app)/projects/page.tsx
+            content: |
+              // CRUD UI for projects
+          - path: app/(app)/clients/page.tsx
+            content: |
+              // CRUD UI for clients
+          - path: app/(app)/timesheets/page.tsx
+            content: |
+              // Timesheet list + "New timesheet" modal/form
+          - path: app/(app)/invoices/page.tsx
+            content: |
+              // Invoices list + create invoice (based on timesheet or manual)
+          - path: app/(app)/settings/page.tsx
+            content: |
+              // Workspace settings: company info, bank detail, logo upload, invoice templates
+      - name: forms
+        notes: |
+          Use react-hook-form + ShadCN form primitives for all forms.
+          Validate required fields (project, client, date, hours).
+      - name: components
+        list:
+          - ProjectCard
+          - ClientCard
+          - TimesheetRow
+          - InvoicePreview
+          - InvoiceTemplateEditor (simple HTML template or WYSIWYG)
+  - phase: 2_db_design
+    title: Database schema (Supabase)
+    description: |
+      Create the tables below in Supabase. Use 'workspace_id' on all business entities to separate Dotkod vs personal.
+      We'll provide SQL that you can paste into Supabase SQL editor or use migrations.
+    tasks:
+      - name: tables_sql
+        sql: |
+          -- Workspaces
+          create table workspaces (
+            id uuid primary key default gen_random_uuid(),
+            name text not null,
+            slug text unique not null,
+            created_at timestamptz default now()
+          );
+
+          -- Users (for audit; only one admin account will be used)
+          create table users (
+            id uuid primary key default gen_random_uuid(),
+            email text unique,
+            name text,
+            created_at timestamptz default now()
+          );
+
+          -- Clients
+          create table clients (
+            id uuid primary key default gen_random_uuid(),
+            workspace_id uuid references workspaces(id) on delete cascade,
+            name text not null,
+            contact_email text,
+            billing_address text,
+            notes text,
+            created_at timestamptz default now()
+          );
+
+          -- Projects
+          create table projects (
+            id uuid primary key default gen_random_uuid(),
+            workspace_id uuid references workspaces(id) on delete cascade,
+            client_id uuid references clients(id) on delete set null,
+            name text not null,
+            code text,
+            hourly_rate numeric,
+            notes text,
+            created_at timestamptz default now()
+          );
+
+          -- Timesheets
+          create table timesheets (
+            id uuid primary key default gen_random_uuid(),
+            workspace_id uuid references workspaces(id) on delete cascade,
+            project_id uuid references projects(id) on delete set null,
+            user_id uuid references users(id) on delete set null,
+            date date not null,
+            hours numeric not null,
+            description text,
+            billable boolean default true,
+            created_at timestamptz default now()
+          );
+
+          -- Invoices
+          create table invoices (
+            id uuid primary key default gen_random_uuid(),
+            workspace_id uuid references workspaces(id) on delete cascade,
+            client_id uuid references clients(id) on delete set null,
+            invoice_number text unique,
+            date_issued date default now(),
+            due_date date,
+            subtotal numeric default 0,
+            tax numeric default 0,
+            total numeric default 0,
+            status text default 'draft', -- draft | sent | paid
+            template_id uuid references invoice_templates(id) on delete set null,
+            pdf_url text, -- optional storage link
+            created_at timestamptz default now()
+          );
+
+          -- Invoice Line items
+          create table invoice_items (
+            id uuid primary key default gen_random_uuid(),
+            invoice_id uuid references invoices(id) on delete cascade,
+            description text,
+            quantity numeric default 1,
+            unit_price numeric default 0,
+            total numeric default 0
+          );
+
+          -- Invoice templates (allow multiple per workspace)
+          create table invoice_templates (
+            id uuid primary key default gen_random_uuid(),
+            workspace_id uuid references workspaces(id) on delete cascade,
+            name text not null,
+            html_template text, -- user editable HTML with placeholders
+            created_at timestamptz default now()
+          );
+
+          -- Example: store app settings per workspace
+          create table workspace_settings (
+            id uuid primary key default gen_random_uuid(),
+            workspace_id uuid references workspaces(id) on delete cascade,
+            key text not null,
+            value text
+          );
+
+      - name: rls_and_security
+        notes: |
+          For v1, if you're the only user, you can keep RLS disabled or a simple policy.
+          When scaling, add policies to restrict workspace access by user membership.
+  - phase: 3_supabase_setup
+    title: Supabase configuration & storage
+    description: |
+      Create a Supabase project and add the SQL above. Configure storage bucket for logo and invoice PDFs.
+    tasks:
+      - name: create_project
+        steps:
+          - Create project on Supabase console
+          - Get URL and anon/service keys and paste into .env.local
+      - name: run_sql
+        steps:
+          - Paste SQL from phase 2 into SQL editor and run
+      - name: storage
+        steps:
+          - Create bucket: 'assets' (public or private depending on needs)
+          - Create folder: logos/ and invoices/
+      - name: seed_workspaces
+        sql: |
+          insert into workspaces (id, name, slug) values
+            (gen_random_uuid(), 'Dotkod Solutions', 'dotkod'),
+            (gen_random_uuid(), 'Sattiyan Freelance', 'sattiyan');
+  - phase: 4_auth
+    title: Simple single-user auth
+    description: |
+      Implement a minimal auth system using credentials from environment variables.
+      This is intentionally simple: one admin account stored in env (TIMESHEET_ADMIN_USERNAME & TIMESHEET_ADMIN_PASSWORD).
+      It is sufficient since app is private. Use Next.js route handlers for login and server-side session.
+    tasks:
+      - name: session_strategy
+        options: |
+          - Use secure HTTP-only cookie to store a session token (signed with NEXTAUTH_SECRET style or custom)
+          - Alternatively, use Supabase anon + a single service role for full DB access (be careful, limit keys in frontend)
+      - name: api_login
+        file: app/api/auth/login/route.ts
+        content: |
+          import { NextResponse } from 'next/server';
+          export async function POST(req) {
+            const { username, password } = await req.json();
+            if (
+              username === process.env.TIMESHEET_ADMIN_USERNAME &&
+              password === process.env.TIMESHEET_ADMIN_PASSWORD
+            ) {
+              // create secure signed session cookie (use a simple signed JWT or server session)
+              // Return 200 and set cookie
+            }
+            return NextResponse.json({ error: 'Invalid' }, { status: 401 });
+          }
+      - name: protect_routes
+        notes: |
+          Wrap app routes with a middleware that checks the session cookie. Redirect to /login if not present.
+  - phase: 5_api_integration
+    title: Supabase CRUD & helpers
+    description: |
+      Implement server and client helpers for CRUD operations using supabase-js.
+    tasks:
+      - name: lib_supabase
+        file: lib/supabaseClient.ts
+        content: |
+          import { createClient } from '@supabase/supabase-js';
+          export const supabase = createClient(
+            process.env.NEXT_PUBLIC_SUPABASE_URL!,
+            process.env.SUPABASE_SERVICE_ROLE_KEY! // caution: use server-only when necessary
+          );
+      - name: server_routes
+        list:
+          - app/api/workspaces/route.ts
+          - app/api/clients/route.ts
+          - app/api/projects/route.ts
+          - app/api/timesheets/route.ts
+          - app/api/invoices/route.ts
+        notes: |
+          Use route handlers in Next.js App Router to run server-side calls to Supabase using the service role key.
+          All server routes should verify session cookie before performing changes.
+      - name: client_helpers
+        file: lib/client.ts
+        content: |
+          // For client-side reads that are safe, use NEXT_PUBLIC_SUPABASE_ANON_KEY.
+          // For mutations, call your server API endpoints to avoid exposing service keys.
+  - phase: 6_feature_building
+    title: Core features (UI + integration)
+    description: |
+      Build out each main feature with components, forms, and server integration.
+    tasks:
+      - name: workspaces_crud
+        detail: Create workspace CRUD (for your use only)
+      - name: clients_crud
+        detail: Create, edit, delete clients
+      - name: projects_crud
+        detail: Projects linked to clients; optional hourly rate
+      - name: timesheet_create
+        detail: Quick-add form:
+          - Fields: date, project, hours, billable (checkbox), description
+          - Save to supabase timesheets
+      - name: timesheet_list
+        detail: Show timesheets grouped by week/month; allow bulk-export selections
+      - name: invoice_generation
+        detail: |
+          - Create invoice from timesheet(s) or manual entry
+          - Let user choose invoice template (from invoice_templates table)
+          - Calculate subtotal, tax, total
+          - Save invoice entries + optionally generate PDF and store in supabase storage/invoices/
+      - name: invoice_template_editor
+        detail: |
+          - Provide a simple HTML template editor (textarea) with placeholders like:
+            {{workspace.name}}, {{client.name}}, {{invoice.number}}, {{items}}
+          - Store template HTML in invoice_templates.html_template
+      - name: pdf_generation
+        detail: |
+          - Use client-side HTML->canvas->pdf approach:
+            - Render invoice preview as HTML
+            - Use html2canvas to capture to canvas then jspdf to export
+            - Or allow browser "Print to PDF" as an option
+          - Store PDF to Supabase storage via server endpoint to keep service key secure
+      - name: excel_export
+        detail: |
+          - Use SheetJS (xlsx) and FileSaver:
+            - Build a helper that maps selected timesheet rows to worksheet
+            - Create simple headers: Date, Project, Client, Hours, Description, Billable
+            - Export to .xlsx and prompt download
+  - phase: 7_invoicing_and_templates
+    title: Invoice advanced behavior
+    description: |
+      Add invoice numbering, status flow, and template placeholders.
+    tasks:
+      - name: invoice_numbering
+        detail: |
+          - Implement a simple numbering strategy per workspace: {workspace_slug}-{YYYYMM}-{sequential}
+          - On invoice create, query the latest number for that workspace and increment
+      - name: invoice_status
+        detail: |
+          - Allow status: draft | sent | paid
+          - Add UI to mark as sent (then optionally call email API later)
+      - name: template_placeholders
+        list:
+          - {{workspace.name}}, {{workspace.address}}, {{client.name}}, {{client.email}}, {{invoice.number}}, {{invoice.date}}, {{items_table}}, {{subtotal}}, {{tax}}, {{total}}
+  - phase: 8_testing_and_qc
+    title: Tests, accessibility & QA
+    description: |
+      Basic unit & integration tests, plus manual QA steps.
+    tasks:
+      - name: tests
+        run: |
+          pnpm add -D vitest @testing-library/react @testing-library/jest-dom
+          # Add basic tests for form validation and API route calls
+      - name: manual_qa
+        checklist:
+          - Create workspace, client, project
+          - Add timesheets
+          - Generate invoice from timesheet
+          - Export timesheet to Excel
+          - Export invoice to PDF and upload to supabase
+  - phase: 9_deploy
+    title: Deployment (Vercel + Supabase)
+    description: |
+      Productionize and deploy.
+    tasks:
+      - name: vercel_setup
+        steps:
+          - Push repo to GitHub
+          - Connect to Vercel, pick repo
+          - Set environment variables in Vercel dashboard (same as .env.local, but never service_role on client)
+      - name: supabase_prod
+        steps:
+          - Ensure database is created on Supabase
+          - Run SQL migrations
+          - Configure storage CORS if needed
+      - name: finalize_env
+        env_list:
+          - NEXT_PUBLIC_SUPABASE_URL
+          - NEXT_PUBLIC_SUPABASE_ANON_KEY
+          - SUPABASE_SERVICE_ROLE_KEY (server-only, never expose to client)
+          - TIMESHEET_ADMIN_USERNAME
+          - TIMESHEET_ADMIN_PASSWORD
+      - name: post_deploy_checks
+        checklist:
+          - Confirm login works on production
+          - Create initial workspaces and seed essential templates
+  - phase: 10_ops_and_next_steps
+    title: Ops, monitoring, and future features
+    suggestions:
+      - Add RLS (Row Level Security) for multi-user later
+      - Add SSO or multi-user when Dotkod team scales
+      - Add email sending (SendGrid) for invoice delivery
+      - Add scheduled reminders for unpaid invoices
+      - Add audit log table for timesheet edits
+      - Consider moving to serverless functions for PDF generation if client-side fails
+  - phase: extras
+    title: Helpful snippets & sample code
+    snippets:
+      - name: excel_export_snippet
+        code: |
+          import * as XLSX from 'xlsx';
+          import { saveAs } from 'file-saver';
+
+          export function exportTimesheetsToExcel(timesheets, filename = 'timesheets.xlsx') {
+            const data = timesheets.map(t => ({
+              Date: t.date,
+              Project: t.project_name,
+              Client: t.client_name,
+              Hours: t.hours,
+              Description: t.description,
+              Billable: t.billable ? 'Yes' : 'No'
+            }));
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Timesheets');
+            const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+            saveAs(new Blob([wbout], { type: 'application/octet-stream' }), filename);
+          }
+
+      - name: pdf_export_snippet
+        code: |
+          import html2canvas from 'html2canvas';
+          import jsPDF from 'jspdf';
+
+          export async function exportInvoiceToPdf(elementId, fileName = 'invoice.pdf') {
+            const input = document.getElementById(elementId);
+            if (!input) throw new Error('Invoice element not found');
+            const canvas = await html2canvas(input, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgProps = pdf.getImageProperties(imgData);
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(fileName);
+          }
+
+      - name: sample_invoice_template
+        html: |
+          <div style="font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;">
+            <header>
+              <h1>{{workspace.name}}</h1>
+              <p>{{workspace.address}}</p>
+            </header>
+            <section>
+              <h2>Invoice {{invoice.number}}</h2>
+              <p>To: {{client.name}}</p>
+              <p>Date: {{invoice.date}}</p>
+            </section>
+            <table>
+              <thead>
+                <tr><th>Description</th><th>Qty</th><th>Unit</th><th>Total</th></tr>
+              </thead>
+              <tbody>
+                {{items_table}}
+              </tbody>
+            </table>
+            <footer>
+              <p>Subtotal: {{subtotal}}</p>
+              <p>Total: {{total}}</p>
+            </footer>
+          </div>
+
+notes:
+  - single_user_security: |
+      Because you chose a single account stored in env variables, protect your .env.local and never commit it.
+      For production, set the same env vars in Vercel project settings.
+  - service_role_key_warning: |
+      NEVER expose SUPABASE_SERVICE_ROLE_KEY to the browser. Keep it only for server routes.
+  - workspace_strategy: |
+      Keep workspace_id attached to every business entity. That allows separation for tax & reporting.
+  - invoices_pdf_storage: |
+      After generating PDF client-side, upload to a server route that receives the base64 and stores to Supabase storage (server route uses SERVICE_ROLE_KEY).
+  - migration_recommendation: |
+      When ready, convert SQL into proper migration scripts or use Supabase CLI for versioned migrations.
+
+# End of .cursorrules
