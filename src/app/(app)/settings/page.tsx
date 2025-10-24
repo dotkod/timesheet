@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { WorkspaceSettingsModal, BillingSettingsModal, PreferencesModal } from "@/components/modals/SettingsModals"
+import { UnifiedSettingsModal } from "@/components/modals/UnifiedSettingsModal"
 import { InvoiceTemplateModal, TemplatePreviewModal } from "@/components/modals/InvoiceTemplateModal"
 import { useWorkspace } from "@/lib/workspace-context"
 import dayjs from "dayjs"
@@ -201,88 +201,77 @@ export default function Settings() {
         </div>
       )}
 
-      {/* Workspace Information */}
+      {/* All Settings - Unified */}
       <Card>
         <CardHeader>
-          <CardTitle>Workspace Information</CardTitle>
+          <CardTitle>All Settings</CardTitle>
           <CardDescription>
-            Your company details and contact information
+            Manage your workspace information, billing settings, and preferences all in one place.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Workspace Information Preview */}
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Company Name</label>
-                <p className="text-sm text-muted-foreground">{settings.companyName || "Not set"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email</label>
-                <p className="text-sm text-muted-foreground">{settings.email || "Not set"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Phone</label>
-                <p className="text-sm text-muted-foreground">{settings.phone || "Not set"}</p>
+              <h4 className="font-medium text-sm">Workspace Information</h4>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Company:</span>
+                  <p className="font-medium">{settings.companyName || "Not set"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Email:</span>
+                  <p className="font-medium">{settings.email || "Not set"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Phone:</span>
+                  <p className="font-medium">{settings.phone || "Not set"}</p>
+                </div>
               </div>
             </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Address</label>
-                <p className="text-sm text-muted-foreground">{settings.address || "Not set"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Tax ID</label>
-                <p className="text-sm text-muted-foreground">{settings.taxId || "Not set"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Website</label>
-                <p className="text-sm text-muted-foreground">{settings.website || "Not set"}</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-6">
-            <WorkspaceSettingsModal settings={settings} onSave={handleSaveSettings} />
-          </div>
-        </CardContent>
-      </Card>
 
-      {/* Billing Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Billing Settings</CardTitle>
-          <CardDescription>
-            Configure your billing preferences and tax settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Billing Settings Preview */}
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Currency</label>
-                <p className="text-sm text-muted-foreground">{settings.currency || "USD"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Tax Rate</label>
-                <p className="text-sm text-muted-foreground">{settings.taxRate || "10"}%</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Invoice Prefix</label>
-                <p className="text-sm text-muted-foreground">{settings.invoicePrefix || "INV"}</p>
+              <h4 className="font-medium text-sm">Billing Settings</h4>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Currency:</span>
+                  <p className="font-medium">{settings.currency || "MYR"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Tax Rate:</span>
+                  <p className="font-medium">{settings.taxRate || "6"}%</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Payment Terms:</span>
+                  <p className="font-medium">{settings.paymentTerms || "Net 30"}</p>
+                </div>
               </div>
             </div>
+
+            {/* Preferences Preview */}
             <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Payment Terms</label>
-                <p className="text-sm text-muted-foreground">{settings.paymentTerms || "Net 30"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Late Fee Rate</label>
-                <p className="text-sm text-muted-foreground">{settings.lateFeeRate || "1.5"}%</p>
+              <h4 className="font-medium text-sm">Preferences</h4>
+              <div className="space-y-2 text-sm">
+                <div>
+                  <span className="text-muted-foreground">Time Format:</span>
+                  <p className="font-medium">{settings.timeFormat || "12-hour"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Date Format:</span>
+                  <p className="font-medium">{settings.dateFormat || "DD MMMM YYYY"}</p>
+                </div>
+                <div>
+                  <span className="text-muted-foreground">Auto Save:</span>
+                  <Badge className={settings.autoSave === "true" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+                    {settings.autoSave === "true" ? "Enabled" : "Disabled"}
+                  </Badge>
+                </div>
               </div>
             </div>
           </div>
           <div className="mt-6">
-            <BillingSettingsModal settings={settings} onSave={handleSaveSettings} />
+            <UnifiedSettingsModal settings={settings} onSave={handleSaveSettings} />
           </div>
         </CardContent>
       </Card>
@@ -357,51 +346,6 @@ export default function Settings() {
           </div>
           <div className="mt-6">
             <InvoiceTemplateModal onSave={handleSaveTemplate} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Preferences */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Preferences</CardTitle>
-          <CardDescription>
-            Customize your application preferences
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Time Format</label>
-                <p className="text-sm text-muted-foreground">{settings.timeFormat || "12-hour"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Date Format</label>
-                <p className="text-sm text-muted-foreground">{settings.dateFormat || "MM/DD/YYYY"}</p>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Week Starts On</label>
-                <p className="text-sm text-muted-foreground">{settings.weekStart || "Monday"}</p>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Auto Save</label>
-                <Badge className={settings.autoSave === "true" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                  {settings.autoSave === "true" ? "Enabled" : "Disabled"}
-                </Badge>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Email Notifications</label>
-                <Badge className={settings.emailNotifications === "true" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                  {settings.emailNotifications === "true" ? "Enabled" : "Disabled"}
-                </Badge>
-              </div>
-            </div>
-          </div>
-          <div className="mt-6">
-            <PreferencesModal settings={settings} onSave={handleSaveSettings} />
           </div>
         </CardContent>
       </Card>
