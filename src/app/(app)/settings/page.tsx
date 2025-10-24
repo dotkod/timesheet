@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { UnifiedSettingsModal } from "@/components/modals/UnifiedSettingsModal"
 import { InvoiceTemplateModal, TemplatePreviewModal } from "@/components/modals/InvoiceTemplateModal"
+import { MobileWorkspaceSwitcher } from "@/components/ui/MobileWorkspaceSwitcher"
 import { useWorkspace } from "@/lib/workspace-context"
 import dayjs from "dayjs"
 
@@ -162,9 +163,16 @@ export default function Settings() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-          <p className="text-muted-foreground">Loading settings...</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+            <p className="text-muted-foreground">Loading settings...</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="md:hidden">
+              <MobileWorkspaceSwitcher />
+            </div>
+          </div>
         </div>
         <div className="space-y-6">
           {[1, 2].map((i) => (
@@ -188,11 +196,18 @@ export default function Settings() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your workspace settings, preferences, and invoice templates.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
+          <p className="text-muted-foreground">
+            Manage your workspace settings, preferences, and invoice templates.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="md:hidden">
+            <MobileWorkspaceSwitcher />
+          </div>
+        </div>
       </div>
 
       {error && (
