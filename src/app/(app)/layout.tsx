@@ -1,5 +1,4 @@
 import { TopNav } from '@/components/ui/TopNav'
-import { FloatingActionButton } from '@/components/ui/FloatingActionButton'
 import { WorkspaceProvider } from '@/lib/workspace-context'
 import { Suspense } from 'react'
 
@@ -16,7 +15,6 @@ export default function AppLayout({
           <main className="container mx-auto px-4 py-8">
             {children}
           </main>
-          <FloatingActionButton />
         </div>
       </WorkspaceProvider>
     </Suspense>

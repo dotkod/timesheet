@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { TimesheetModal } from "@/components/modals/TimesheetModal"
 import { TimesheetDetailsModal } from "@/components/modals/TimesheetDetailsModal"
 import { DeleteModal } from "@/components/modals/DeleteModal"
+import { TimesheetChatBot } from "@/components/ui/TimesheetChatBot"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportTimesheetsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
@@ -201,7 +202,6 @@ export default function Timesheets() {
           <Button variant="outline" onClick={exportToExcel} className="w-full sm:w-auto">
             Export Excel
           </Button>
-          <TimesheetModal projects={projects} onSave={handleSaveTimesheet} />
         </div>
       </div>
 
@@ -297,6 +297,9 @@ export default function Timesheets() {
           ))
         )}
       </div>
+
+      {/* Chat Bot */}
+      <TimesheetChatBot projects={projects} onSave={handleSaveTimesheet} />
     </div>
   )
 }
