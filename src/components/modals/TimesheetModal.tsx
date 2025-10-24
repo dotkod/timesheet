@@ -44,7 +44,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
     projectId: timesheet?.projectId || "",
     hours: timesheet?.hours || 1,
     description: timesheet?.description || "",
-    billable: timesheet?.billable ?? true,
+    billable: timesheet?.billable ?? false,
     ...(timesheet?.id && { id: timesheet.id })
   })
 
@@ -75,7 +75,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
       projectId: "",
       hours: 1,
       description: "",
-      billable: true
+      billable: false
     })
   }
 
