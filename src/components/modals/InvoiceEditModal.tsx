@@ -493,7 +493,7 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
           </Button>
           <Button 
             onClick={handleSave} 
-            disabled={!selectedClient || !selectedTemplate || (clientTimesheets.length === 0 && clientFixedProjects.length === 0)}
+            disabled={!selectedClient || !selectedTemplate}
             className="w-full sm:w-auto"
           >
             Save Changes
