@@ -317,7 +317,7 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
                 </div>
               ))}
               {messages.map((message) => 
-                message.suggestions && message.suggestions.length > 0 && (
+                message.suggestions && message.suggestions.length > 0 && message.type === 'bot' && message.id === messages.filter(m => m.type === 'bot').pop()?.id && (
                   <div key={`suggestions-${message.id}`} className="flex justify-start">
                     <div className="flex flex-wrap gap-2">
                       {message.suggestions.map((suggestion, index) => (
