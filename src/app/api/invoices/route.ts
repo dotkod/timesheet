@@ -206,7 +206,7 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, status, notes } = body
+    const { id, status, notes, description, clientId, templateId, dateIssued, dueDate, subtotal, tax, total } = body
 
     if (!id) {
       return NextResponse.json({ error: 'Invoice ID is required' }, { status: 400 })
@@ -216,7 +216,14 @@ export async function PUT(request: NextRequest) {
       .from('invoices')
       .update({
         status: status || 'draft',
-        notes: notes
+        notes: description || notes, // Use description as primary, fallback to notes
+        client_id: clientId,
+        template_id: templateId,
+        date_issued: dateIssued,
+        due_date: dueDate,
+        subtotal: subtotal,
+        tax: tax,
+        total: total
       })
       .eq('id', id)
       .select()
