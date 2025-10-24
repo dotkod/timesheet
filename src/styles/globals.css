@@ -57,6 +57,19 @@
     padding-right: env(safe-area-inset-right);
   }
   
+  /* Status bar background for mobile */
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: env(safe-area-inset-top);
+    background-color: #ffffff;
+    z-index: 9999;
+    pointer-events: none;
+  }
+  
   /* Fix for mobile viewport issues */
   #__next {
     min-height: 100vh;
