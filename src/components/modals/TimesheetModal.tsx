@@ -106,7 +106,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 value={formData.date}
                 onChange={(e) => handleChange("date", e.target.value)}
                 required
-                className="h-11"
+                className="h-11 w-full"
                 autoFocus={false}
               />
             </div>
@@ -150,7 +150,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 onChange={(e) => handleChange("hours", parseFloat(e.target.value) || 0)}
                 placeholder="0.00"
                 required
-                className="h-11"
+                className="h-11 w-full"
                 autoFocus={false}
               />
               <p className="text-xs text-muted-foreground">Enter hours in decimal format (e.g., 1.5 for 1 hour 30 minutes)</p>
@@ -190,7 +190,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
               rows={4}
               placeholder="Describe what you worked on... (e.g., 'Fixed login bug', 'Implemented user dashboard', 'Code review')"
               required
-              className="resize-none"
+              className="resize-none w-full"
               autoFocus={false}
             />
             <p className="text-xs text-muted-foreground">Be specific about the work completed</p>
