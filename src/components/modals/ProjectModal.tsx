@@ -14,7 +14,9 @@ interface Project {
   name: string
   code: string
   clientId: string
+  billingType: "hourly" | "fixed"
   hourlyRate: number
+  fixedAmount: number
   status: "active" | "completed" | "on-hold"
   notes?: string
 }
@@ -37,7 +39,9 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
     name: project?.name || "",
     code: project?.code || "",
     clientId: project?.clientId || "",
+    billingType: project?.billingType || "hourly",
     hourlyRate: project?.hourlyRate || 0,
+    fixedAmount: project?.fixedAmount || 0,
     status: project?.status || "active",
     notes: project?.notes || "",
     ...(project?.id && { id: project.id })
@@ -52,7 +56,9 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
       name: "",
       code: "",
       clientId: "",
+      billingType: "hourly",
       hourlyRate: 0,
+      fixedAmount: 0,
       status: "active",
       notes: ""
     })
@@ -130,20 +136,55 @@ export function ProjectModal({ project, clients, onSave, trigger }: ProjectModal
               </Select>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="hourlyRate" className="text-right">
-                Hourly Rate
+              <Label htmlFor="billingType" className="text-right">
+                Billing Type *
               </Label>
-              <Input
-                id="hourlyRate"
-                type="number"
-                step="0.01"
-                min="0"
-                value={formData.hourlyRate}
-                onChange={(e) => handleChange("hourlyRate", parseFloat(e.target.value) || 0)}
-                className="col-span-3"
-                placeholder="0.00"
-              />
+              <Select value={formData.billingType} onValueChange={(value) => handleChange("billingType", value)}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select billing type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="hourly">Hourly Rate</SelectItem>
+                  <SelectItem value="fixed">Fixed Monthly Amount</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+            {formData.billingType === "hourly" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="hourlyRate" className="text-right">
+                  Hourly Rate *
+                </Label>
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.hourlyRate}
+                  onChange={(e) => handleChange("hourlyRate", parseFloat(e.target.value) || 0)}
+                  className="col-span-3"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            )}
+            {formData.billingType === "fixed" && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="fixedAmount" className="text-right">
+                  Monthly Amount *
+                </Label>
+                <Input
+                  id="fixedAmount"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.fixedAmount}
+                  onChange={(e) => handleChange("fixedAmount", parseFloat(e.target.value) || 0)}
+                  className="col-span-3"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+            )}
             <div className="grid grid-cols-4 items-center gap-4">
               <Label htmlFor="status" className="text-right">
                 Status

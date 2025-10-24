@@ -17,7 +17,9 @@ interface Project {
   code: string
   clientId: string
   client: string
+  billingType: "hourly" | "fixed"
   hourlyRate: number
+  fixedAmount: number
   status: "active" | "completed" | "on-hold"
   notes?: string
   totalHours: number

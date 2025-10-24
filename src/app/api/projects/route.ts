@@ -39,7 +39,9 @@ export async function GET(request: NextRequest) {
       code: project.code,
       clientId: project.client_id,
       client: project.clients?.name || 'No Client',
-      hourlyRate: project.hourly_rate,
+      billingType: project.billing_type || 'hourly',
+      hourlyRate: project.hourly_rate || 0,
+      fixedAmount: project.fixed_amount || 0,
       status: project.status,
       notes: project.notes,
       totalHours: 0, // Will calculate from timesheets
@@ -65,7 +67,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, code, clientId, hourlyRate, status, notes, workspaceId } = body
+    const { name, code, clientId, billingType, hourlyRate, fixedAmount, status, notes, workspaceId } = body
 
     if (!name || !workspaceId) {
       return NextResponse.json({ error: 'Name and workspace ID are required' }, { status: 400 })
@@ -78,7 +80,9 @@ export async function POST(request: NextRequest) {
         client_id: clientId,
         name,
         code,
-        hourly_rate: hourlyRate || 0,
+        billing_type: billingType || 'hourly',
+        hourly_rate: billingType === 'hourly' ? (hourlyRate || 0) : 0,
+        fixed_amount: billingType === 'fixed' ? (fixedAmount || 0) : 0,
         status: status || 'active',
         notes
       })
@@ -101,7 +105,9 @@ export async function POST(request: NextRequest) {
         code: project.code,
         clientId: project.client_id,
         client: project.clients?.name || 'No Client',
-        hourlyRate: project.hourly_rate,
+        billingType: project.billing_type || 'hourly',
+        hourlyRate: project.hourly_rate || 0,
+        fixedAmount: project.fixed_amount || 0,
         status: project.status,
         notes: project.notes,
         createdAt: project.created_at,
@@ -159,7 +165,9 @@ export async function PUT(request: NextRequest) {
         code: project.code,
         clientId: project.client_id,
         client: project.clients?.name || 'No Client',
-        hourlyRate: project.hourly_rate,
+        billingType: project.billing_type || 'hourly',
+        hourlyRate: project.hourly_rate || 0,
+        fixedAmount: project.fixed_amount || 0,
         status: project.status,
         notes: project.notes,
         createdAt: project.created_at,
