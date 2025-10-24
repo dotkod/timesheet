@@ -374,86 +374,72 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
 
           {/* Timesheet Selection */}
           {selectedClient && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Select Timesheets
-                </CardTitle>
-                <CardDescription>
-                  Choose timesheet entries to include in this invoice.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {clientTimesheets.length === 0 ? (
-                  <p className="text-muted-foreground text-sm">No timesheets found for this client.</p>
-                ) : (
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {clientTimesheets.map((timesheet) => (
-                      <div key={timesheet.id} className="flex items-center space-x-2 p-2 border rounded">
-                        <Checkbox
-                          id={`timesheet-${timesheet.id}`}
-                          checked={selectedTimesheets.includes(timesheet.id)}
-                          onCheckedChange={() => handleTimesheetToggle(timesheet.id)}
-                        />
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm font-medium">{timesheet.projectName}</span>
-                            <span className="text-sm text-muted-foreground">
-                              {getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}
-                            </span>
-                          </div>
-                          <p className="text-xs text-muted-foreground">{timesheet.date} - {timesheet.hours}h</p>
-                          <p className="text-xs text-muted-foreground truncate">{timesheet.description}</p>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4" />
+                <h3 className="font-medium">Select Timesheets</h3>
+              </div>
+              {clientTimesheets.length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">No timesheets found for this client.</p>
+              ) : (
+                <div className="space-y-2 max-h-40 overflow-y-auto">
+                  {clientTimesheets.map((timesheet) => (
+                    <div key={timesheet.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30">
+                      <Checkbox
+                        id={`timesheet-${timesheet.id}`}
+                        checked={selectedTimesheets.includes(timesheet.id)}
+                        onCheckedChange={() => handleTimesheetToggle(timesheet.id)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">{timesheet.projectName}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}
+                          </span>
                         </div>
+                        <p className="text-xs text-muted-foreground">{timesheet.date} - {timesheet.hours}h</p>
+                        <p className="text-xs text-muted-foreground truncate">{timesheet.description}</p>
                       </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Fixed Projects Selection */}
           {selectedClient && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FolderOpen className="h-5 w-5" />
-                  Select Fixed Projects
-                </CardTitle>
-                <CardDescription>
-                  Choose fixed-amount projects to include in this invoice.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {clientProjects.filter(p => p.billingType === 'fixed').length === 0 ? (
-                  <p className="text-muted-foreground text-sm">No fixed projects found for this client.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {clientProjects
-                      .filter(p => p.billingType === 'fixed')
-                      .map((project) => (
-                        <div key={project.id} className="flex items-center space-x-2 p-2 border rounded">
-                          <Checkbox
-                            id={`project-${project.id}`}
-                            checked={selectedProjects.includes(project.id)}
-                            onCheckedChange={() => handleProjectToggle(project.id)}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium">{project.name}</span>
-                              <span className="text-sm text-muted-foreground">
-                                {getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}/month
-                              </span>
-                            </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-4 w-4" />
+                <h3 className="font-medium">Select Fixed Projects</h3>
+              </div>
+              {clientProjects.filter(p => p.billingType === 'fixed').length === 0 ? (
+                <p className="text-sm text-muted-foreground py-2">No fixed projects found for this client.</p>
+              ) : (
+                <div className="space-y-2">
+                  {clientProjects
+                    .filter(p => p.billingType === 'fixed')
+                    .map((project) => (
+                      <div key={project.id} className="flex items-center space-x-2 p-2 border rounded bg-muted/30">
+                        <Checkbox
+                          id={`project-${project.id}`}
+                          checked={selectedProjects.includes(project.id)}
+                          onCheckedChange={() => handleProjectToggle(project.id)}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-medium">{project.name}</span>
+                            <span className="text-sm text-muted-foreground">
+                              {getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}/month
+                            </span>
                           </div>
                         </div>
-                      ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Notes */}
@@ -470,30 +456,26 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
 
           {/* Invoice Summary */}
           {(selectedTimesheets.length > 0 || selectedProjects.length > 0) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-5 w-5" />
-                  Invoice Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax ({workspaceSettings.taxRate || '0'}%):</span>
-                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span>Total:</span>
-                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{total.toFixed(2)}</span>
-                  </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <h3 className="font-medium">Invoice Summary</h3>
+              </div>
+              <div className="space-y-1 p-3 border rounded bg-muted/30">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{subtotal.toFixed(2)}</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex justify-between text-sm">
+                  <span>Tax ({workspaceSettings.taxRate || '0'}%):</span>
+                  <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-base border-t pt-1">
+                  <span>Total:</span>
+                  <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
           )}
         </div>
 
