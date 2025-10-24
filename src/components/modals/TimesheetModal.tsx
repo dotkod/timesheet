@@ -81,7 +81,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
       <DialogTrigger asChild>
         {trigger || defaultTrigger}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl w-[90vw] sm:w-[90vw] md:w-[85vw] lg:w-[800px] max-h-[90vh] overflow-y-auto mx-4">
+      <DialogContent className="max-w-2xl w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
@@ -95,7 +95,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
           
           {/* Date and Project Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div className="space-y-2 overflow-hidden">
               <Label htmlFor="date" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
                 Date *
@@ -106,7 +106,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 value={formData.date}
                 onChange={(e) => handleChange("date", e.target.value)}
                 required
-                className="h-11 w-full min-w-0"
+                className="h-11 w-full max-w-full"
                 autoFocus={false}
               />
             </div>
