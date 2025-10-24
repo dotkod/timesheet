@@ -201,66 +201,41 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      {/* Recent Activity */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Timesheets</CardTitle>
-            <CardDescription>
-              Your latest time entries
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {recentTimesheets.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                No timesheets found. Start logging time to see your activity here.
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {recentTimesheets.map((timesheet) => (
-                  <div key={timesheet.id} className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">{timesheet.project}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {timesheet.client} • {timesheet.date}
-                      </p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">
-                        {timesheet.description}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium">{timesheet.hours}h</p>
-                    </div>
+      {/* Recent Timesheets - Full Width */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent Timesheets</CardTitle>
+          <CardDescription>
+            Your latest time entries
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {recentTimesheets.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground">
+              No timesheets found. Start logging time to see your activity here.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentTimesheets.map((timesheet) => (
+                <div key={timesheet.id} className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">{timesheet.project}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {timesheet.client} • {timesheet.date}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate max-w-[200px]">
+                      {timesheet.description}
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>
-              Common tasks and shortcuts
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <Button className="w-full justify-start" variant="outline">
-              Add New Timesheet
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              Create Project
-            </Button>
-            <Button className="w-full justify-start" variant="outline">
-              Generate Invoice
-            </Button>
-            <Button className="w-full justify-start" variant="outline" onClick={exportTimesheets}>
-              Export Recent Timesheets
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
+                  <div className="text-right">
+                    <p className="text-sm font-medium">{timesheet.hours}h</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }
