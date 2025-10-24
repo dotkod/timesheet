@@ -333,6 +333,7 @@ Does this look correct?`
                           onClick={() => {
                             setInputValue(suggestion)
                             processUserInput(suggestion)
+                            setInputValue("") // Clear input after sending
                           }}
                           disabled={isProcessing}
                         >
