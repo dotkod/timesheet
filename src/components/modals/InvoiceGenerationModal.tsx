@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge"
 import { Plus, Calendar, DollarSign } from "lucide-react"
 import { useWorkspace } from "@/lib/workspace-context"
 import { getCurrencySymbol } from "@/lib/excel-export"
+import { Editor } from '@tinymce/tinymce-react'
 
 interface Client {
   id: string
@@ -328,11 +329,24 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
 
           <div className="space-y-2">
             <Label htmlFor="description">Invoice Description</Label>
-            <Input
-              id="description"
+            <Editor
+              apiKey="no-api-key"
               value={invoiceData.description}
-              onChange={(e) => setInvoiceData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="e.g., Web Development Services - January 2024"
+              onEditorChange={(content) => setInvoiceData(prev => ({ ...prev, description: content }))}
+              init={{
+                height: 200,
+                menubar: false,
+                plugins: [
+                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
+                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
+                ],
+                toolbar: 'undo redo | blocks | ' +
+                  'bold italic forecolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ' +
+                  'removeformat | help',
+                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
+              }}
             />
           </div>
 

@@ -29,7 +29,10 @@ export const DEFAULT_INVOICE_TEMPLATE = `
             <div>
               <h3 style="margin: 0; font-size: 14px; font-weight: bold; color: #000;">To:</h3>
               <div style="line-height: 1.2;">
-                <p style="margin: 0; font-weight: bold; font-size: 14px; color: #000;">{{client.name}}</p>
+                <p style="margin: 0 0 3px 0; font-weight: bold; font-size: 14px; color: #000;">{{client.name}}</p>
+                <p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">{{client.address}}</p>
+                <p style="margin: 0 0 3px 0; font-size: 12px; color: #000;">Phone: {{client.phone}}</p>
+                <p style="margin: 0; font-size: 12px; color: #000;">Email: {{client.email}}</p>
               </div>
             </div>
           </div>
@@ -46,7 +49,7 @@ export const DEFAULT_INVOICE_TEMPLATE = `
     <thead>
       <tr style="background-color: #000;">
         <th style="border: 1px solid #000; padding: 12px; text-align: left; font-weight: bold; font-size: 14px; color: #fff;">No</th>
-        <th style="border: 1px solid #000; padding: 12px; text-align: left; font-weight: bold; font-size: 14px; color: #fff;">Description</th>
+        <th style="border: 1px solid #000; padding: 12px; text-align: left; font-weight: bold; font-size: 14px; color: #fff;">Invoice Description</th>
         <th style="border: 1px solid #000; padding: 12px; text-align: right; font-weight: bold; font-size: 14px; color: #fff;">Amount (RM)</th>
       </tr>
     </thead>
