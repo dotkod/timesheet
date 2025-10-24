@@ -179,13 +179,17 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
             const isFixedProject = selectedProject?.billingType === 'fixed'
             
             setTimeout(() => {
-              addBotMessage("Perfect! Let me confirm your timesheet entry:")
-              addBotMessage(`📅 Date: ${timesheetData.date}`)
-              addBotMessage(`📁 Project: ${selectedProject?.name} (${selectedProject?.client.name})`)
-              addBotMessage(`⏰ Hours: ${timesheetData.hours}`)
-              addBotMessage(`📝 Description: ${input.trim()}`)
-              addBotMessage(`💰 Billable: ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}`)
-              addBotMessage("Does this look correct?", ['Yes, save it', 'No, start over'])
+              const confirmationMessage = `Perfect! Let me confirm your timesheet entry:
+
+📅 **Date:** ${timesheetData.date}
+📁 **Project:** ${selectedProject?.name} (${selectedProject?.client.name})
+⏰ **Hours:** ${timesheetData.hours}
+📝 **Description:** ${input.trim()}
+💰 **Billable:** ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}
+
+Does this look correct?`
+              
+              addBotMessage(confirmationMessage, ['Yes, save it', 'No, start over'])
             }, 500)
           } else {
             addBotMessage("Please provide a description of what you worked on.")
