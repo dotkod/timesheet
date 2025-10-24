@@ -8,7 +8,8 @@ import {
   Clock, 
   FolderOpen, 
   FileText, 
-  Settings
+  Settings,
+  Plus
 } from "lucide-react"
 
 export function BottomNav() {
@@ -53,6 +54,12 @@ export function BottomNav() {
       href: createLink('/settings'),
       icon: Settings,
       path: '/settings'
+    },
+    {
+      name: 'Quick Add',
+      href: createLink('/mobile-assistant'),
+      icon: Plus,
+      path: '/mobile-assistant'
     }
   ]
 
