@@ -263,7 +263,7 @@ export default function Invoices() {
       <div className="space-y-8">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Invoices</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
             <p className="text-muted-foreground">Loading invoices...</p>
           </div>
         </div>
@@ -285,7 +285,7 @@ export default function Invoices() {
     <div className="space-y-8">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Invoices</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Manage your invoices and track payments.
           </p>

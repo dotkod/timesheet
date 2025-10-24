@@ -78,10 +78,8 @@ export function MobileWorkspaceSwitcher() {
   return (
     <div className="relative">
       {/* Workspace Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className={`w-10 h-10 rounded-lg transition-all duration-200 ${
+      <button
+        className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 hover:bg-muted ${
           isHolding ? 'scale-110 bg-primary/20' : ''
         }`}
         onMouseDown={handleMouseDown}
@@ -91,7 +89,7 @@ export function MobileWorkspaceSwitcher() {
         onTouchEnd={handleTouchEnd}
       >
         <Building2 className="h-6 w-6" />
-      </Button>
+      </button>
 
       {/* Workspace Dropdown */}
       {isOpen && (
