@@ -167,7 +167,7 @@ export default function Settings() {
           <p className="text-muted-foreground">Loading settings...</p>
         </div>
         <div className="space-y-6">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2].map((i) => (
             <Card key={i} className="animate-pulse">
               <CardHeader>
                 <div className="h-4 bg-gray-200 rounded w-1/3"></div>
