@@ -5,9 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { TimesheetModal } from "@/components/modals/TimesheetModal"
+import { TimesheetDetailsModal } from "@/components/modals/TimesheetDetailsModal"
 import { DeleteModal } from "@/components/modals/DeleteModal"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportTimesheetsToExcel, getCurrencySymbol } from "@/lib/excel-export"
+import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 interface Timesheet {
   id: string
@@ -208,9 +211,9 @@ export default function Timesheets() {
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {timesheets.length === 0 ? (
-          <Card>
+          <Card className="col-span-full">
             <CardContent className="p-12 text-center">
               <p className="text-muted-foreground">No timesheets found. Create your first timesheet entry to get started.</p>
             </CardContent>
@@ -219,40 +222,75 @@ export default function Timesheets() {
           timesheets.map((timesheet) => (
             <Card key={timesheet.id} className="hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
+                <div className="space-y-3">
+                  {/* Header with project name and dropdown */}
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1 min-w-0">
                       <h3 className="text-sm font-medium truncate">{timesheet.project}</h3>
-                      <Badge variant="outline" className="text-xs">{timesheet.client}</Badge>
-                      {timesheet.billable && (
-                        <Badge className="bg-green-100 text-green-800 text-xs">Billable</Badge>
-                      )}
+                      <Badge variant="outline" className="text-xs mt-1">{timesheet.client}</Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate mb-2">{timesheet.description}</p>
-                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                      <span>{timesheet.date}</span>
-                      <span>{timesheet.hours}h</span>
-                      <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</span>
-                      <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</span>
-                    </div>
-                  </div>
-                  <div className="flex gap-1 ml-4">
-                    <TimesheetModal 
-                      timesheet={timesheet} 
-                      projects={projects}
-                      onSave={handleSaveTimesheet}
-                      trigger={
-                        <Button variant="outline" size="sm" className="h-8 px-2">
-                          Edit
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
-                      }
-                    />
-                    <DeleteModal
-                      itemType="Timesheet"
-                      itemName={`${timesheet.project} - ${timesheet.date}`}
-                      onConfirm={() => handleDeleteTimesheet(timesheet.id)}
-                    />
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <TimesheetDetailsModal 
+                            timesheet={timesheet} 
+                            workspaceSettings={workspaceSettings}
+                            trigger={
+                              <div className="flex items-center gap-2 w-full">
+                                <Eye className="h-4 w-4" />
+                                View Details
+                              </div>
+                            }
+                          />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <TimesheetModal 
+                            timesheet={timesheet} 
+                            projects={projects}
+                            onSave={handleSaveTimesheet}
+                            trigger={
+                              <div className="flex items-center gap-2 w-full">
+                                <Edit className="h-4 w-4" />
+                                Edit
+                              </div>
+                            }
+                          />
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <DeleteModal
+                            itemType="Timesheet"
+                            itemName={`${timesheet.project} - ${timesheet.date}`}
+                            onConfirm={() => handleDeleteTimesheet(timesheet.id)}
+                            trigger={
+                              <div className="flex items-center gap-2 w-full text-red-600">
+                                <Trash2 className="h-4 w-4" />
+                                Delete
+                              </div>
+                            }
+                          />
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
+
+                  {/* Description */}
+                  <p className="text-xs text-muted-foreground line-clamp-2">{timesheet.description}</p>
+
+                  {/* Date and hours */}
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <span>{timesheet.date}</span>
+                    <span>{timesheet.hours}h</span>
+                  </div>
+
+                  {/* Billable badge */}
+                  {timesheet.billable && (
+                    <Badge className="bg-green-100 text-green-800 text-xs w-fit">Billable</Badge>
+                  )}
                 </div>
               </CardContent>
             </Card>
