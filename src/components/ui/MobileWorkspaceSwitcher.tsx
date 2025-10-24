@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useWorkspace } from "@/lib/workspace-context"
-import { ChevronDown, Building2 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Card } from "@/components/ui/card"
+import { Building2 } from "lucide-react"
 
 interface Workspace {
   id: string
@@ -15,9 +13,7 @@ interface Workspace {
 export function MobileWorkspaceSwitcher() {
   const { currentWorkspace, setCurrentWorkspace } = useWorkspace()
   const [workspaces, setWorkspaces] = useState<Workspace[]>([])
-  const [isOpen, setIsOpen] = useState(false)
-  const [isHolding, setIsHolding] = useState(false)
-  const [holdTimer, setHoldTimer] = useState<NodeJS.Timeout | null>(null)
+  const [currentIndex, setCurrentIndex] = useState(0)
 
   useEffect(() => {
     const fetchWorkspaces = async () => {
@@ -26,6 +22,12 @@ export function MobileWorkspaceSwitcher() {
         if (response.ok) {
           const data = await response.json()
           setWorkspaces(data.workspaces || [])
+          
+          // Find current workspace index
+          if (currentWorkspace && data.workspaces) {
+            const index = data.workspaces.findIndex((w: Workspace) => w.id === currentWorkspace.id)
+            setCurrentIndex(index >= 0 ? index : 0)
+          }
         }
       } catch (error) {
         console.error('Error fetching workspaces:', error)
@@ -33,98 +35,30 @@ export function MobileWorkspaceSwitcher() {
     }
 
     fetchWorkspaces()
-  }, [])
+  }, [currentWorkspace])
 
-  const handleMouseDown = () => {
-    setIsHolding(true)
-    const timer = setTimeout(() => {
-      setIsOpen(true)
-    }, 500) // 500ms hold to open
-    setHoldTimer(timer)
-  }
-
-  const handleMouseUp = () => {
-    setIsHolding(false)
-    if (holdTimer) {
-      clearTimeout(holdTimer)
-      setHoldTimer(null)
-    }
-  }
-
-  const handleTouchStart = () => {
-    setIsHolding(true)
-    const timer = setTimeout(() => {
-      setIsOpen(true)
-    }, 500) // 500ms hold to open
-    setHoldTimer(timer)
-  }
-
-  const handleTouchEnd = () => {
-    setIsHolding(false)
-    if (holdTimer) {
-      clearTimeout(holdTimer)
-      setHoldTimer(null)
-    }
-  }
-
-  const handleWorkspaceChange = async (workspace: Workspace) => {
-    setCurrentWorkspace(workspace)
-    setIsOpen(false)
+  const handleWorkspaceToggle = async () => {
+    if (workspaces.length <= 1) return // No need to switch if only one workspace
+    
+    // Calculate next workspace index
+    const nextIndex = (currentIndex + 1) % workspaces.length
+    const nextWorkspace = workspaces[nextIndex]
+    
+    // Update current workspace
+    setCurrentWorkspace(nextWorkspace)
+    setCurrentIndex(nextIndex)
     
     // Refresh the page to load new workspace data
     window.location.reload()
   }
 
   return (
-    <div className="relative">
-      {/* Workspace Button */}
-      <button
-        className={`flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 hover:bg-muted ${
-          isHolding ? 'scale-110 bg-primary/20' : ''
-        }`}
-        onMouseDown={handleMouseDown}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-      >
-        <Building2 className="h-6 w-6" />
-      </button>
-
-      {/* Workspace Dropdown */}
-      {isOpen && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50">
-          <Card className="min-w-48 p-2 shadow-lg">
-            <div className="space-y-1">
-              <div className="px-3 py-2 text-xs font-medium text-muted-foreground border-b">
-                Switch Workspace
-              </div>
-              {workspaces.map((workspace) => (
-                <Button
-                  key={workspace.id}
-                  variant="ghost"
-                  size="sm"
-                  className={`w-full justify-start text-sm ${
-                    currentWorkspace?.id === workspace.id ? 'bg-primary/10 text-primary' : ''
-                  }`}
-                  onClick={() => handleWorkspaceChange(workspace)}
-                >
-                  <Building2 className="h-4 w-4 mr-2" />
-                  {workspace.name}
-                </Button>
-              ))}
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Backdrop */}
-      {isOpen && (
-        <div 
-          className="fixed inset-0 z-40" 
-          onClick={() => setIsOpen(false)}
-        />
-      )}
-    </div>
+    <button
+      className="flex items-center justify-center w-10 h-10 rounded-lg transition-all duration-200 hover:bg-muted"
+      onClick={handleWorkspaceToggle}
+      title={`Switch to next workspace (${workspaces.length} available)`}
+    >
+      <Building2 className="h-6 w-6" />
+    </button>
   )
 }
