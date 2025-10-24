@@ -299,7 +299,10 @@ export default function Timesheets() {
       </div>
 
       {/* Chat Bot */}
-      <TimesheetChatBot projects={projects} onSave={handleSaveTimesheet} />
+      {/* Hide chatbot on mobile - use bottom nav instead */}
+      <div className="hidden md:block">
+        <TimesheetChatBot projects={projects} onSave={handleSaveTimesheet} />
+      </div>
     </div>
   )
 }
