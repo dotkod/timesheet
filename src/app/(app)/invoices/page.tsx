@@ -174,14 +174,16 @@ export default function Invoices() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Invoices</h1>
           <p className="text-muted-foreground">
             Manage your invoices and track payments.
           </p>
         </div>
-        <InvoiceGenerationModal onGenerate={handleGenerateInvoice} />
+        <div className="flex flex-col sm:flex-row gap-2">
+          <InvoiceGenerationModal onGenerate={handleGenerateInvoice} />
+        </div>
       </div>
 
       {error && (

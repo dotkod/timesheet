@@ -161,15 +161,15 @@ export default function Clients() {
 
   return (
     <div className="space-y-8">
-      <div className="flex items-center justify-between">
+      <div className="space-y-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Clients</h1>
           <p className="text-muted-foreground">
             Manage your client relationships and contact information.
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={exportToExcel}>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <Button variant="outline" onClick={exportToExcel} className="w-full sm:w-auto">
             Export Excel
           </Button>
           <ClientModal onSave={handleSaveClient} />
