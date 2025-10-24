@@ -141,6 +141,9 @@ export default function Invoices() {
         const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
         
         console.log('Client data:', client) // Debug log
+        console.log('Client address:', client?.address) // Debug log
+        console.log('Client phone:', client?.phone) // Debug log
+        console.log('Client email:', client?.email) // Debug log
 
         // Fetch workspace settings for company info
         const settingsResponse = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace?.id}`)
@@ -204,6 +207,9 @@ export default function Invoices() {
         const client = clientData.clients.find((c: any) => c.id === invoice.clientId)
         
         console.log('Client data:', client) // Debug log
+        console.log('Client address:', client?.address) // Debug log
+        console.log('Client phone:', client?.phone) // Debug log
+        console.log('Client email:', client?.email) // Debug log
 
         // Fetch workspace settings for company info
         const settingsResponse = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace?.id}`)
