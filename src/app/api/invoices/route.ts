@@ -36,7 +36,9 @@ export async function GET(request: NextRequest) {
     const transformedInvoices = invoices?.map(invoice => ({
       id: invoice.id,
       invoiceNumber: invoice.invoice_number,
+      clientId: invoice.client_id, // Add this missing field!
       client: invoice.clients?.name || 'No Client',
+      templateId: invoice.template_id, // Add this missing field!
       dateIssued: invoice.date_issued,
       dueDate: invoice.due_date,
       status: invoice.status,
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
       tax: invoice.tax,
       total: invoice.total,
       description: invoice.notes || '',
+      notes: invoice.notes || '', // Add this missing field!
       createdAt: invoice.created_at,
       updatedAt: invoice.updated_at
     })) || []
