@@ -57,7 +57,7 @@ export function BottomNav() {
     },
     {
       name: 'Quick Add',
-      href: createLink('/mobile-assistant'),
+      href: '/mobile-assistant',
       icon: Bot,
       path: '/mobile-assistant'
     }
