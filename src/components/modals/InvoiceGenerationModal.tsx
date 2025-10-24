@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Plus, Calendar, DollarSign } from "lucide-react"
 import { useWorkspace } from "@/lib/workspace-context"
+import { getCurrencySymbol } from "@/lib/excel-export"
 
 interface Client {
   id: string
@@ -62,6 +63,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
   const [selectedTimesheets, setSelectedTimesheets] = useState<string[]>([])
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
+  const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const [invoiceData, setInvoiceData] = useState({
     clientId: "",
     templateId: "",
@@ -72,12 +74,26 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
   })
   const { currentWorkspace } = useWorkspace()
 
+  const fetchWorkspaceSettings = async () => {
+    if (!currentWorkspace) return
+    try {
+      const response = await fetch(`/api/workspace-settings?workspaceId=${currentWorkspace.id}`)
+      const data = await response.json()
+      if (response.ok) {
+        setWorkspaceSettings(data.settings || {})
+      }
+    } catch (error) {
+      console.error('Failed to fetch workspace settings:', error)
+    }
+  }
+
   useEffect(() => {
     if (currentWorkspace) {
       fetchClients()
       fetchProjects()
       fetchTimesheets()
       fetchTemplates()
+      fetchWorkspaceSettings()
     }
   }, [currentWorkspace])
 
@@ -187,7 +203,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
     const fixedSubtotal = selectedProjectData.reduce((sum, p) => sum + p.fixedAmount, 0)
     
     const subtotal = timesheetSubtotal + fixedSubtotal
-    const taxRate = 10 // Default tax rate, should come from settings
+    const taxRate = parseFloat(workspaceSettings.taxRate || '0')
     const tax = subtotal * (taxRate / 100)
     const total = subtotal + tax
     
@@ -368,8 +384,8 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
                           </p>
                           <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                             <span>{timesheet.hours}h</span>
-                            <span>${timesheet.hourlyRate}/h</span>
-                            <span className="font-medium text-foreground">${timesheet.total.toFixed(2)}</span>
+                            <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</span>
+                            <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</span>
                           </div>
                         </div>
                       </div>
@@ -424,7 +440,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
                             </div>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
                               <span>Monthly Fee</span>
-                              <span className="font-medium text-foreground">${project.fixedAmount.toFixed(2)}</span>
+                              <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}</span>
                             </div>
                           </div>
                         </div>
@@ -448,15 +464,15 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span>Subtotal:</span>
-                    <span>${totals.subtotal.toFixed(2)}</span>
+                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span>Tax (10%):</span>
-                    <span>${totals.tax.toFixed(2)}</span>
+                    <span>Tax ({workspaceSettings.taxRate || '0'}%):</span>
+                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.tax.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg border-t pt-2">
                     <span>Total:</span>
-                    <span>${totals.total.toFixed(2)}</span>
+                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.total.toFixed(2)}</span>
                   </div>
                 </div>
               </CardContent>
