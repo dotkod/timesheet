@@ -60,7 +60,7 @@ export function BottomNav() {
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border">
         <div className="flex items-center justify-between py-3 px-4">
           {/* Left: First 2 nav items */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             {navItems.slice(0, 2).map((item) => {
               const Icon = item.icon
               const active = isActive(item.path)
@@ -69,14 +69,13 @@ export function BottomNav() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
                     active 
                       ? 'text-primary bg-primary/10' 
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Icon className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">{item.name}</span>
+                  <Icon className="h-6 w-6" />
                 </Link>
               )
             })}
@@ -86,7 +85,7 @@ export function BottomNav() {
           <MobileWorkspaceSwitcher />
 
           {/* Right: Last 2 nav items */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-4">
             {navItems.slice(2, 4).map((item) => {
               const Icon = item.icon
               const active = isActive(item.path)
@@ -95,14 +94,13 @@ export function BottomNav() {
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex flex-col items-center justify-center py-2 px-3 rounded-lg transition-colors ${
+                  className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
                     active 
                       ? 'text-primary bg-primary/10' 
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <Icon className="h-5 w-5 mb-1" />
-                  <span className="text-xs font-medium">{item.name}</span>
+                  <Icon className="h-6 w-6" />
                 </Link>
               )
             })}
