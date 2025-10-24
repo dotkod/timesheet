@@ -62,8 +62,6 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
   const [templates, setTemplates] = useState<InvoiceTemplate[]>([])
   const [selectedClient, setSelectedClient] = useState<string>("")
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
-  const [selectedTimesheets, setSelectedTimesheets] = useState<string[]>([])
-  const [selectedProjects, setSelectedProjects] = useState<string[]>([])
   const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
   const [invoiceData, setInvoiceData] = useState({
     clientId: "",
@@ -164,13 +162,6 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
   const handleClientChange = (clientId: string) => {
     setSelectedClient(clientId)
     setInvoiceData(prev => ({ ...prev, clientId }))
-    
-    // Filter timesheets for selected client
-    const clientTimesheets = timesheets.filter(t => 
-      projects.find(p => p.id === t.projectId)?.client === 
-      clients.find(c => c.id === clientId)?.name
-    )
-    setSelectedTimesheets(clientTimesheets.map(t => t.id))
   }
 
   const handleTemplateChange = (templateId: string) => {
@@ -178,53 +169,56 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
     setInvoiceData(prev => ({ ...prev, templateId }))
   }
 
-  const handleTimesheetToggle = (timesheetId: string) => {
-    setSelectedTimesheets(prev => 
-      prev.includes(timesheetId) 
-        ? prev.filter(id => id !== timesheetId)
-        : [...prev, timesheetId]
-    )
-  }
-
-  const handleProjectToggle = (projectId: string) => {
-    setSelectedProjects(prev => 
-      prev.includes(projectId) 
-        ? prev.filter(id => id !== projectId)
-        : [...prev, projectId]
-    )
-  }
 
   const calculateTotals = () => {
-    // Calculate from selected timesheets (hourly projects)
-    const selectedTimesheetData = timesheets.filter(t => selectedTimesheets.includes(t.id))
-    const timesheetSubtotal = selectedTimesheetData.reduce((sum, t) => sum + t.total, 0)
+    if (!selectedClient || !invoiceData.dateIssued) return { subtotal: 0, tax: 0, total: 0 }
     
-    // Calculate from selected fixed projects
-    const selectedProjectData = projects.filter(p => selectedProjects.includes(p.id) && p.billingType === 'fixed')
-    const fixedSubtotal = selectedProjectData.reduce((sum, p) => sum + p.fixedAmount, 0)
+    const clientName = clients.find(c => c.id === selectedClient)?.name
+    if (!clientName) return { subtotal: 0, tax: 0, total: 0 }
+    
+    // Get the month/year from the invoice date
+    const invoiceDate = new Date(invoiceData.dateIssued)
+    const invoiceMonth = invoiceDate.getMonth()
+    const invoiceYear = invoiceDate.getFullYear()
+    
+    // Filter timesheets for the selected client and month
+    const clientTimesheets = timesheets.filter(t => {
+      const timesheetDate = new Date(t.date)
+      const project = projects.find(p => p.id === t.projectId)
+      return project?.client === clientName && 
+             timesheetDate.getMonth() === invoiceMonth && 
+             timesheetDate.getFullYear() === invoiceYear
+    })
+    
+    // Calculate from timesheets (hourly projects)
+    const timesheetSubtotal = clientTimesheets.reduce((sum, t) => sum + t.total, 0)
+    
+    // Calculate from fixed projects for this client
+    const clientFixedProjects = projects.filter(p => 
+      p.client === clientName && p.billingType === 'fixed'
+    )
+    const fixedSubtotal = clientFixedProjects.reduce((sum, p) => sum + p.fixedAmount, 0)
     
     const subtotal = timesheetSubtotal + fixedSubtotal
     const taxRate = parseFloat(workspaceSettings.taxRate || '0')
     const tax = subtotal * (taxRate / 100)
     const total = subtotal + tax
     
-    return { subtotal, tax, total }
+    return { subtotal, tax, total, clientTimesheets, clientFixedProjects }
   }
 
   const handleGenerate = () => {
     const totals = calculateTotals()
-    const selectedTimesheetData = timesheets.filter(t => selectedTimesheets.includes(t.id))
-    const selectedProjectData = projects.filter(p => selectedProjects.includes(p.id) && p.billingType === 'fixed')
     
     // Create invoice items from both timesheets and fixed projects
-    const timesheetItems = selectedTimesheetData.map(t => ({
+    const timesheetItems = (totals.clientTimesheets || []).map(t => ({
       description: `${t.project} - ${t.description}`,
       quantity: t.hours,
       unitPrice: t.hourlyRate,
       total: t.total
     }))
     
-    const fixedProjectItems = selectedProjectData.map(p => ({
+    const fixedProjectItems = (totals.clientFixedProjects || []).map(p => ({
       description: `${p.name} - Monthly Fee`,
       quantity: 1,
       unitPrice: p.fixedAmount,
@@ -235,8 +229,8 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
     
     const invoicePayload = {
       ...invoiceData,
-      timesheetIds: selectedTimesheets,
-      projectIds: selectedProjects,
+      timesheetIds: (totals.clientTimesheets || []).map(t => t.id),
+      projectIds: (totals.clientFixedProjects || []).map(p => p.id),
       subtotal: totals.subtotal,
       tax: totals.tax,
       total: totals.total,
@@ -248,13 +242,28 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
   }
 
   const totals = calculateTotals()
-  const clientTimesheets = selectedClient ? timesheets.filter(t => 
-    projects.find(p => p.id === t.projectId)?.client === 
-    clients.find(c => c.id === selectedClient)?.name
-  ) : []
   
-  const clientProjects = selectedClient ? projects.filter(p => 
-    p.client === clients.find(c => c.id === selectedClient)?.name
+  // Get client timesheets for the selected month
+  const clientTimesheets = selectedClient && invoiceData.dateIssued ? (() => {
+    const clientName = clients.find(c => c.id === selectedClient)?.name
+    if (!clientName) return []
+    
+    const invoiceDate = new Date(invoiceData.dateIssued)
+    const invoiceMonth = invoiceDate.getMonth()
+    const invoiceYear = invoiceDate.getFullYear()
+    
+    return timesheets.filter(t => {
+      const timesheetDate = new Date(t.date)
+      const project = projects.find(p => p.id === t.projectId)
+      return project?.client === clientName && 
+             timesheetDate.getMonth() === invoiceMonth && 
+             timesheetDate.getFullYear() === invoiceYear
+    })
+  })() : []
+  
+  // Get client fixed projects
+  const clientFixedProjects = selectedClient ? projects.filter(p => 
+    p.client === clients.find(c => c.id === selectedClient)?.name && p.billingType === 'fixed'
   ) : []
 
   return (
@@ -350,43 +359,32 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
             />
           </div>
 
-          {/* Timesheet Selection */}
-          {selectedClient && (
+          {/* Timesheet Details */}
+          {selectedClient && invoiceData.dateIssued && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  Select Timesheet Entries
+                  Timesheet Entries for {new Date(invoiceData.dateIssued).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
                 </CardTitle>
                 <CardDescription>
-                  Choose which timesheet entries to include in this invoice.
+                  Timesheet entries for this client in the selected month will be automatically included.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
                   {clientTimesheets.length === 0 ? (
                     <p className="text-muted-foreground text-center py-4">
-                      No timesheet entries found for this client.
+                      No timesheet entries found for this client in {new Date(invoiceData.dateIssued).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.
                     </p>
                   ) : (
                     clientTimesheets.map((timesheet) => (
                       <div 
                         key={timesheet.id} 
-                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                          selectedTimesheets.includes(timesheet.id) 
-                            ? 'bg-primary/10 border-primary' 
-                            : 'hover:bg-muted'
-                        }`}
-                        onClick={() => handleTimesheetToggle(timesheet.id)}
+                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/50"
                       >
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <input
-                              type="checkbox"
-                              checked={selectedTimesheets.includes(timesheet.id)}
-                              onChange={() => handleTimesheetToggle(timesheet.id)}
-                              className="rounded"
-                            />
                             <span className="font-medium">{timesheet.project}</span>
                             <Badge variant="outline">{timesheet.date}</Badge>
                             {timesheet.billable && (
@@ -410,55 +408,42 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
             </Card>
           )}
 
-          {/* Project Selection */}
+          {/* Fixed Projects Details */}
           {selectedClient && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Select Fixed Projects
+                  Fixed Monthly Projects
                 </CardTitle>
                 <CardDescription>
-                  Choose which fixed monthly projects to include in this invoice.
+                  Fixed monthly projects for this client will be automatically included.
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {clientProjects.filter(p => p.billingType === 'fixed').length === 0 ? (
+                  {clientFixedProjects.length === 0 ? (
                     <p className="text-muted-foreground text-center py-4">
                       No fixed monthly projects found for this client.
                     </p>
                   ) : (
-                    clientProjects
-                      .filter(p => p.billingType === 'fixed')
-                      .map((project) => (
-                        <div 
-                          key={project.id} 
-                          className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-colors ${
-                            selectedProjects.includes(project.id) 
-                              ? 'bg-primary/10 border-primary' 
-                              : 'hover:bg-muted'
-                          }`}
-                          onClick={() => handleProjectToggle(project.id)}
-                        >
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="checkbox"
-                                checked={selectedProjects.includes(project.id)}
-                                onChange={() => handleProjectToggle(project.id)}
-                                className="rounded"
-                              />
-                              <span className="font-medium">{project.name}</span>
-                              <Badge className="bg-blue-100 text-blue-800">Fixed Monthly</Badge>
-                            </div>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                              <span>Monthly Fee</span>
-                              <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}</span>
-                            </div>
+                    clientFixedProjects.map((project) => (
+                      <div 
+                        key={project.id} 
+                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/50"
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{project.name}</span>
+                            <Badge className="bg-blue-100 text-blue-800">Fixed Monthly</Badge>
+                          </div>
+                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                            <span>Monthly Fee</span>
+                            <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}</span>
                           </div>
                         </div>
-                      ))
+                      </div>
+                    ))
                   )}
                 </div>
               </CardContent>
@@ -466,7 +451,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
           )}
 
           {/* Invoice Summary */}
-          {(selectedTimesheets.length > 0 || selectedProjects.length > 0) && (
+          {selectedClient && (clientTimesheets.length > 0 || clientFixedProjects.length > 0) && (
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -511,7 +496,7 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
           </Button>
           <Button 
             onClick={handleGenerate}
-            disabled={!selectedClient || !selectedTemplate || (selectedTimesheets.length === 0 && selectedProjects.length === 0)}
+            disabled={!selectedClient || !selectedTemplate || (clientTimesheets.length === 0 && clientFixedProjects.length === 0)}
             className="w-full sm:w-auto"
           >
             Generate Invoice
