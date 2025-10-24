@@ -12,7 +12,9 @@ interface Project {
   name: string
   code: string
   client: string
+  billingType: "hourly" | "fixed"
   hourlyRate: number
+  fixedAmount: number
   status: "active" | "completed" | "on-hold" | "cancelled"
   notes?: string
   totalHours: number
@@ -67,9 +69,19 @@ export function ProjectDetailsModal({ project, trigger }: ProjectDetailsModalPro
               {project.code && (
                 <p className="text-sm text-muted-foreground mt-1">Code: {project.code}</p>
               )}
-              <Badge className={`mt-2 ${getStatusColor(project.status)}`}>
-                {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('-', ' ')}
-              </Badge>
+              <div className="flex gap-2 mt-2">
+                <Badge className={`${getStatusColor(project.status)}`}>
+                  {project.status.charAt(0).toUpperCase() + project.status.slice(1).replace('-', ' ')}
+                </Badge>
+                <Badge 
+                  variant="outline"
+                  className={`${
+                    project.billingType === 'fixed' ? 'bg-purple-100 text-purple-800' : 'bg-orange-100 text-orange-800'
+                  }`}
+                >
+                  {project.billingType === 'fixed' ? 'Fixed Monthly' : 'Hourly'}
+                </Badge>
+              </div>
             </div>
           </div>
 
@@ -95,12 +107,16 @@ export function ProjectDetailsModal({ project, trigger }: ProjectDetailsModalPro
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4" />
-                  Hourly Rate
+                  {project.billingType === 'fixed' ? 'Monthly Amount' : 'Hourly Rate'}
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">RM {project.hourlyRate.toFixed(2)}</div>
-                <p className="text-sm text-muted-foreground">Per hour</p>
+                <div className="text-2xl font-bold">
+                  RM {project.billingType === 'fixed' ? project.fixedAmount.toFixed(2) : project.hourlyRate.toFixed(2)}
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  {project.billingType === 'fixed' ? 'Per month' : 'Per hour'}
+                </p>
               </CardContent>
             </Card>
 
