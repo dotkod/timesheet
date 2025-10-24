@@ -13,6 +13,7 @@ import { Plus, Calendar, DollarSign, FileText, Clock, FolderOpen } from "lucide-
 import { useWorkspace } from "@/lib/workspace-context"
 import { getCurrencySymbol } from "@/lib/excel-export"
 import { Editor } from '@tinymce/tinymce-react'
+import dayjs from 'dayjs'
 
 interface Invoice {
   id: string
@@ -402,7 +403,7 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
                     <div key={timesheet.id} className="flex items-center justify-between p-2 border rounded bg-muted/30 text-sm">
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{timesheet.projectName}</span>
-                        <Badge variant="outline" className="text-xs">{timesheet.date}</Badge>
+                        <Badge variant="outline" className="text-xs">{dayjs(timesheet.date).format('DD MMM YYYY')}</Badge>
                         {timesheet.billable && <Badge className="bg-green-100 text-green-800 text-xs">Billable</Badge>}
                       </div>
                       <div className="flex items-center gap-3 text-xs text-muted-foreground">
