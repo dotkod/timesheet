@@ -71,7 +71,7 @@ export function BottomNav() {
     <>
       {/* Bottom Navigation - Mobile Only */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border">
-        <div className="flex items-center justify-center py-3 px-2">
+        <div className="flex items-center justify-between py-3 px-1">
           {navItems.map((item) => {
             const Icon = item.icon
             const active = isActive(item.path)
@@ -80,7 +80,7 @@ export function BottomNav() {
               <Link
                 key={item.name}
                 href={item.href}
-                className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors mx-1 ${
+                className={`flex items-center justify-center w-10 h-10 rounded-lg transition-colors ${
                   active 
                     ? 'text-primary bg-primary/10' 
                     : 'text-muted-foreground hover:text-foreground'

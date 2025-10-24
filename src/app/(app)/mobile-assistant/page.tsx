@@ -286,22 +286,6 @@ Does this look correct?`
 
   return (
     <div className="min-h-screen bg-background md:hidden">
-      {/* Mobile Header */}
-      <div className="sticky top-0 z-50 bg-background border-b border-border p-4">
-        <div className="flex items-center justify-between">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => router.back()}
-            className="p-2"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-          <h1 className="text-3xl font-bold tracking-tight">Quick Add Timesheet</h1>
-          <div className="w-9" /> {/* Spacer for centering */}
-        </div>
-      </div>
-
       {/* Chat Messages */}
       <div className="flex-1 p-4 space-y-4 pb-20">
         {messages.map((message) => (
