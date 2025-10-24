@@ -6,9 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { useWorkspace } from "@/lib/workspace-context"
-import { WorkspaceProvider } from "@/lib/workspace-context"
 import { ArrowLeft, Send, Bot, User } from "lucide-react"
-import { Suspense } from "react"
 
 interface Project {
   id: string
@@ -27,13 +25,7 @@ interface Message {
 }
 
 export default function MobileAssistantPage() {
-  return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <WorkspaceProvider>
-        <MobileAssistantContent />
-      </WorkspaceProvider>
-    </Suspense>
-  )
+  return <MobileAssistantContent />
 }
 
 function MobileAssistantContent() {
@@ -339,7 +331,7 @@ Does this look correct?`
       </div>
 
       {/* Input Area - Fixed at bottom */}
-      <div className="bg-background border-t border-border p-4">
+      <div className="bg-background border-t border-border p-4 pb-20">
         <div className="flex items-center space-x-2">
           <Input
             value={inputValue}
