@@ -80,16 +80,16 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
   const [timesheets, setTimesheets] = useState<Timesheet[]>([])
   const [templates, setTemplates] = useState<InvoiceTemplate[]>([])
   const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
-  const [selectedClient, setSelectedClient] = useState<string>(invoice.clientId)
-  const [selectedTemplate, setSelectedTemplate] = useState<string>(invoice.templateId)
+  const [selectedClient, setSelectedClient] = useState<string>('')
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('')
   const [selectedTimesheets, setSelectedTimesheets] = useState<string[]>([])
   const [selectedProjects, setSelectedProjects] = useState<string[]>([])
   const [invoiceData, setInvoiceData] = useState({
-    dateIssued: invoice.dateIssued,
-    dueDate: invoice.dueDate,
-    description: invoice.description,
-    notes: invoice.notes,
-    status: invoice.status
+    dateIssued: '',
+    dueDate: '',
+    description: '',
+    notes: '',
+    status: 'draft'
   })
   const { currentWorkspace } = useWorkspace()
 
@@ -170,8 +170,19 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
       fetchTimesheets()
       fetchTemplates()
       fetchWorkspaceSettings()
+      
+      // Reset form data when modal opens
+      setSelectedClient(invoice.clientId || '')
+      setSelectedTemplate(invoice.templateId || '')
+      setInvoiceData({
+        dateIssued: invoice.dateIssued || '',
+        dueDate: invoice.dueDate || '',
+        description: invoice.description || '',
+        notes: invoice.notes || '',
+        status: invoice.status || 'draft'
+      })
     }
-  }, [currentWorkspace, open])
+  }, [currentWorkspace, open, invoice])
 
   const handleClientChange = (clientId: string) => {
     setSelectedClient(clientId)
