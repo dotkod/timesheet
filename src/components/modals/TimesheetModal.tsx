@@ -40,7 +40,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
   const [formData, setFormData] = useState<Timesheet>({
     date: timesheet?.date || new Date().toISOString().split('T')[0],
     projectId: timesheet?.projectId || "",
-    hours: timesheet?.hours || 0,
+    hours: timesheet?.hours || 1,
     description: timesheet?.description || "",
     billable: timesheet?.billable ?? true,
     ...(timesheet?.id && { id: timesheet.id })
@@ -54,7 +54,7 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
     setFormData({
       date: new Date().toISOString().split('T')[0],
       projectId: "",
-      hours: 0,
+      hours: 1,
       description: "",
       billable: true
     })
@@ -147,8 +147,8 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 min="0"
                 max="24"
                 value={formData.hours}
-                onChange={(e) => handleChange("hours", parseFloat(e.target.value) || 0)}
-                placeholder="0.00"
+                onChange={(e) => handleChange("hours", parseFloat(e.target.value) || 1)}
+                placeholder="1.00"
                 required
                 className="h-11 w-full min-w-0"
                 autoFocus={false}
