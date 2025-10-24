@@ -361,121 +361,88 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
 
           {/* Timesheet Details */}
           {selectedClient && invoiceData.dateIssued && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Timesheet Entries for {new Date(invoiceData.dateIssued).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-                </CardTitle>
-                <CardDescription>
-                  Timesheet entries for this client in the selected month will be automatically included.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {clientTimesheets.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-4">
-                      No timesheet entries found for this client in {new Date(invoiceData.dateIssued).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.
-                    </p>
-                  ) : (
-                    clientTimesheets.map((timesheet) => (
-                      <div 
-                        key={timesheet.id} 
-                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/50"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{timesheet.project}</span>
-                            <Badge variant="outline">{timesheet.date}</Badge>
-                            {timesheet.billable && (
-                              <Badge className="bg-green-100 text-green-800">Billable</Badge>
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground mt-1">
-                            {timesheet.description}
-                          </p>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                            <span>{timesheet.hours}h</span>
-                            <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</span>
-                            <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</span>
-                          </div>
-                        </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <Calendar className="h-4 w-4" />
+                <h3 className="font-medium">Timesheet Entries for {new Date(invoiceData.dateIssued).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</h3>
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {clientTimesheets.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">
+                    No timesheet entries found for this client in {new Date(invoiceData.dateIssued).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}.
+                  </p>
+                ) : (
+                  clientTimesheets.map((timesheet) => (
+                    <div key={timesheet.id} className="flex items-center justify-between p-2 border rounded bg-muted/30 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{timesheet.project}</span>
+                        <Badge variant="outline" className="text-xs">{timesheet.date}</Badge>
+                        {timesheet.billable && <Badge className="bg-green-100 text-green-800 text-xs">Billable</Badge>}
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>{timesheet.hours}h</span>
+                        <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</span>
+                        <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           )}
 
           {/* Fixed Projects Details */}
           {selectedClient && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Fixed Monthly Projects
-                </CardTitle>
-                <CardDescription>
-                  Fixed monthly projects for this client will be automatically included.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 max-h-60 overflow-y-auto">
-                  {clientFixedProjects.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-4">
-                      No fixed monthly projects found for this client.
-                    </p>
-                  ) : (
-                    clientFixedProjects.map((project) => (
-                      <div 
-                        key={project.id} 
-                        className="flex items-center justify-between p-3 border rounded-lg bg-muted/50"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{project.name}</span>
-                            <Badge className="bg-blue-100 text-blue-800">Fixed Monthly</Badge>
-                          </div>
-                          <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
-                            <span>Monthly Fee</span>
-                            <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}</span>
-                          </div>
-                        </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <h3 className="font-medium">Fixed Monthly Projects</h3>
+              </div>
+              <div className="space-y-2 max-h-40 overflow-y-auto">
+                {clientFixedProjects.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-2">
+                    No fixed monthly projects found for this client.
+                  </p>
+                ) : (
+                  clientFixedProjects.map((project) => (
+                    <div key={project.id} className="flex items-center justify-between p-2 border rounded bg-muted/30 text-sm">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{project.name}</span>
+                        <Badge className="bg-blue-100 text-blue-800 text-xs">Fixed Monthly</Badge>
                       </div>
-                    ))
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                        <span>Monthly Fee</span>
+                        <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
           )}
 
           {/* Invoice Summary */}
           {selectedClient && (clientTimesheets.length > 0 || clientFixedProjects.length > 0) && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Invoice Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex justify-between">
-                    <span>Subtotal:</span>
-                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.subtotal.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span>Tax ({workspaceSettings.taxRate || '0'}%):</span>
-                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.tax.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between font-bold text-lg border-t pt-2">
-                    <span>Total:</span>
-                    <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.total.toFixed(2)}</span>
-                  </div>
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                <h3 className="font-medium">Invoice Summary</h3>
+              </div>
+              <div className="space-y-1 p-3 border rounded bg-muted/30">
+                <div className="flex justify-between text-sm">
+                  <span>Subtotal:</span>
+                  <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.subtotal.toFixed(2)}</span>
                 </div>
-              </CardContent>
-            </Card>
+                <div className="flex justify-between text-sm">
+                  <span>Tax ({workspaceSettings.taxRate || '0'}%):</span>
+                  <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.tax.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-bold text-base border-t pt-1">
+                  <span>Total:</span>
+                  <span>{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{totals.total.toFixed(2)}</span>
+                </div>
+              </div>
+            </div>
           )}
 
           <div className="space-y-2">
