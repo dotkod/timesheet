@@ -292,27 +292,25 @@ export default function Settings() {
               </div>
             ) : (
               templates.map((template) => (
-                <div key={template.id} className="flex items-center justify-between p-4 border rounded-lg">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="font-medium">{template.name}</h3>
-                      {template.isDefault && (
-                        <Badge className="bg-blue-100 text-blue-800">Default</Badge>
-                      )}
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      {template.description || "No description"}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      Last modified: {dayjs(template.updatedAt).format('DD MMMM YYYY')}
-                    </p>
+                <div key={template.id} className="p-4 border rounded-lg space-y-4">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-medium">{template.name}</h3>
+                    {template.isDefault && (
+                      <Badge className="bg-blue-100 text-blue-800">Default</Badge>
+                    )}
                   </div>
-                  <div className="flex gap-2">
+                  <p className="text-sm text-muted-foreground mb-2">
+                    {template.description || "No description"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Last modified: {dayjs(template.updatedAt).format('DD MMMM YYYY')}
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-2">
                     <TemplatePreviewModal 
                       template={template}
                       trigger={
-                        <Button variant="outline" size="sm">
-                          Preview
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                          Preview PDF
                         </Button>
                       }
                     />
@@ -320,7 +318,7 @@ export default function Settings() {
                       template={template}
                       onSave={handleSaveTemplate}
                       trigger={
-                        <Button variant="outline" size="sm">
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
                           Edit
                         </Button>
                       }
@@ -329,6 +327,7 @@ export default function Settings() {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleDuplicateTemplate(template)}
+                      className="w-full sm:w-auto"
                     >
                       Duplicate
                     </Button>
@@ -336,6 +335,7 @@ export default function Settings() {
                       variant="outline" 
                       size="sm"
                       onClick={() => handleDeleteTemplate(template.id)}
+                      className="w-full sm:w-auto"
                     >
                       Delete
                     </Button>
