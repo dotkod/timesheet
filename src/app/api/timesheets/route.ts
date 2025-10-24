@@ -65,23 +65,30 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { date, projectId, hours, description, billable, workspaceId } = body
 
+    console.log('Timesheet creation request:', { date, projectId, hours, description, billable, workspaceId })
+
     if (!date || !projectId || !hours || !description || !workspaceId) {
+      console.log('Missing required fields:', { date: !!date, projectId: !!projectId, hours: !!hours, description: !!description, workspaceId: !!workspaceId })
       return NextResponse.json({ 
         error: 'Date, project ID, hours, description, and workspace ID are required' 
       }, { status: 400 })
     }
 
+    const insertData = {
+      workspace_id: workspaceId,
+      project_id: projectId,
+      user_id: session.user.id,
+      date,
+      hours: parseFloat(hours),
+      description,
+      billable: billable !== false
+    }
+    
+    console.log('Inserting timesheet data:', insertData)
+
     const { data: timesheet, error } = await supabaseAdmin
       .from('timesheets')
-      .insert({
-        workspace_id: workspaceId,
-        project_id: projectId,
-        user_id: session.user.id,
-        date,
-        hours: parseFloat(hours),
-        description,
-        billable: billable !== false
-      })
+      .insert(insertData)
       .select(`
         *,
         projects:project_id(name, hourly_rate, clients:client_id(name))
@@ -90,6 +97,7 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       console.error('Database error:', error)
+      console.error('Error details:', error.message, error.details, error.hint)
       return NextResponse.json({ error: 'Failed to create timesheet entry' }, { status: 500 })
     }
 

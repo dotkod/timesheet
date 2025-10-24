@@ -48,7 +48,14 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    onSave(formData)
+    
+    // Ensure hours is at least 0.25 if it's 0
+    const dataToSave = {
+      ...formData,
+      hours: formData.hours === 0 ? 0.25 : formData.hours
+    }
+    
+    onSave(dataToSave)
     setOpen(false)
     // Reset form
     setFormData({
