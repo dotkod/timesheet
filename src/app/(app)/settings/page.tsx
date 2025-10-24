@@ -168,10 +168,8 @@ export default function Settings() {
             <h1 className="text-3xl font-bold tracking-tight">Settings</h1>
             <p className="text-muted-foreground">Loading settings...</p>
           </div>
-          <div className="flex items-center gap-2">
-            <div className="md:hidden">
-              <MobileWorkspaceSwitcher />
-            </div>
+          <div className="md:hidden w-full">
+            <MobileWorkspaceSwitcher />
           </div>
         </div>
         <div className="space-y-6">
@@ -203,10 +201,8 @@ export default function Settings() {
             Manage your workspace settings, preferences, and invoice templates.
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <div className="md:hidden">
-            <MobileWorkspaceSwitcher />
-          </div>
+        <div className="md:hidden w-full">
+          <MobileWorkspaceSwitcher />
         </div>
       </div>
 
