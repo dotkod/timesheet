@@ -442,28 +442,6 @@ export function InvoiceGenerationModal({ onGenerate, trigger }: InvoiceGeneratio
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="description">Invoice Description</Label>
-            <Editor
-              apiKey="l83sjkylmyn9h2qo9h3wca1hhb07mq90afi5mhptqfyzt26i"
-              value={invoiceData.description}
-              onEditorChange={(content) => setInvoiceData(prev => ({ ...prev, description: content }))}
-              init={{
-                height: 200,
-                menubar: false,
-                plugins: [
-                  'advlist', 'autolink', 'lists', 'link', 'image', 'charmap', 'preview',
-                  'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-                  'insertdatetime', 'media', 'table', 'code', 'help', 'wordcount'
-                ],
-                toolbar: 'undo redo | blocks | ' +
-                  'bold italic forecolor | alignleft aligncenter ' +
-                  'alignright alignjustify | bullist numlist outdent indent | ' +
-                  'removeformat | help',
-                content_style: 'body { font-family:Helvetica,Arial,sans-serif; font-size:14px }'
-              }}
-            />
-          </div>
         </div>
 
         <DialogFooter className="gap-2 flex-col sm:flex-row">
