@@ -61,8 +61,8 @@ export function FloatingActionButton() {
       
       if (response.ok) {
         setOpen(false)
-        // Refresh the page to show new timesheet
-        window.location.reload()
+        // Trigger a custom event to refresh timesheet data
+        window.dispatchEvent(new CustomEvent('timesheetCreated'))
       } else {
         setError(data.error || "Failed to create timesheet entry")
         console.error('Failed to save timesheet:', data.error)

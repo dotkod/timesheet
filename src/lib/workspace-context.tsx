@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { clearWorkspaceCache } from '@/hooks/useData'
 
 interface Workspace {
   id: string
@@ -71,6 +72,11 @@ export function WorkspaceProvider({ children }: { children: React.ReactNode }) {
 
   // Enhanced setCurrentWorkspace function
   const handleSetCurrentWorkspace = (workspace: Workspace) => {
+    // Clear cache for the previous workspace
+    if (currentWorkspace) {
+      clearWorkspaceCache(currentWorkspace.id)
+    }
+    
     setCurrentWorkspace(workspace)
     localStorage.setItem('selectedWorkspaceId', workspace.id)
     updateUrlWithWorkspace(workspace.id)

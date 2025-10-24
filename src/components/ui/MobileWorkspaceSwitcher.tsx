@@ -48,8 +48,10 @@ export function MobileWorkspaceSwitcher() {
     setCurrentWorkspace(nextWorkspace)
     setCurrentIndex(nextIndex)
     
-    // Refresh the page to load new workspace data
-    window.location.reload()
+    // Update URL without page reload
+    const currentPath = window.location.pathname
+    const newUrl = `${currentPath}?workspace=${nextWorkspace.id}`
+    window.history.replaceState({}, '', newUrl)
   }
 
   return (

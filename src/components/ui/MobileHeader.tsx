@@ -14,7 +14,7 @@ export function MobileHeader() {
         method: "POST",
       })
       router.push("/login")
-      router.refresh()
+      // No router.refresh() needed - SPA navigation
     } catch (error) {
       console.error("Logout error:", error)
     }

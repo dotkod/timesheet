@@ -2,6 +2,7 @@ import { TopNav } from '@/components/ui/TopNav'
 import { BottomNav } from '@/components/ui/BottomNav'
 import { MobileHeader } from '@/components/ui/MobileHeader'
 import { WorkspaceProvider } from '@/lib/workspace-context'
+import { NavigationPreloader } from '@/components/NavigationPreloader'
 import { Suspense } from 'react'
 
 export default function AppLayout({
@@ -12,6 +13,7 @@ export default function AppLayout({
   return (
     <Suspense fallback={<div>Loading...</div>}>
       <WorkspaceProvider>
+        <NavigationPreloader />
         <div className="min-h-screen min-h-dvh bg-background flex flex-col">
           <TopNav />
           <MobileHeader />

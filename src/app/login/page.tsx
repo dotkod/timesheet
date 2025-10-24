@@ -32,7 +32,7 @@ export default function LoginPage() {
 
       if (response.ok) {
         router.push("/dashboard")
-        router.refresh()
+        // No router.refresh() needed - SPA navigation
       } else {
         setError(data.error || "Login failed")
       }
