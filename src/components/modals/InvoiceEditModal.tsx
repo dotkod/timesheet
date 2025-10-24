@@ -424,21 +424,19 @@ export function InvoiceEditModal({ invoice, onSave, trigger }: InvoiceEditModalP
                 <FolderOpen className="h-4 w-4" />
                 <h3 className="font-medium">Fixed Monthly Projects</h3>
               </div>
-              <div className="space-y-2 max-h-40 overflow-y-auto">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                 {clientFixedProjects.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-2">
+                  <div className="col-span-full text-sm text-muted-foreground py-4 text-center">
                     No fixed monthly projects found for this client.
-                  </p>
+                  </div>
                 ) : (
                   clientFixedProjects.map((project) => (
-                    <div key={project.id} className="flex items-center justify-between p-2 border rounded bg-muted/30 text-sm">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{project.name}</span>
-                        <Badge className="bg-blue-100 text-blue-800 text-xs">Fixed Monthly</Badge>
+                    <div key={project.id} className="p-3 border rounded bg-muted/30 text-sm">
+                      <div className="font-medium text-xs mb-1 truncate" title={project.name}>
+                        {project.name}
                       </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span>Monthly Fee</span>
-                        <span className="font-medium text-foreground">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}</span>
+                      <div className="text-xs text-muted-foreground">
+                        {getCurrencySymbol(workspaceSettings.currency || 'MYR')}{project.fixedAmount.toFixed(2)}
                       </div>
                     </div>
                   ))
