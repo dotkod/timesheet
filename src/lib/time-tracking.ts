@@ -109,7 +109,23 @@ export function formatElapsedTime(milliseconds: number): string {
 }
 
 export function calculateHours(milliseconds: number): number {
-  return Math.round((milliseconds / (1000 * 60 * 60)) * 4) / 4 // Round to nearest 0.25 hours
+  // Convert to minutes first, then to hours with 2 decimal places
+  const minutes = milliseconds / (1000 * 60)
+  const hours = minutes / 60
+  
+  // Apply 15-minute minimum billing rule
+  const minimumHours = 0.25 // 15 minutes = 0.25 hours
+  const actualHours = Math.round(hours * 100) / 100
+  
+  return Math.max(actualHours, minimumHours)
+}
+
+export function calculateMinutes(milliseconds: number): number {
+  const actualMinutes = Math.round(milliseconds / (1000 * 60))
+  
+  // Apply 15-minute minimum billing rule
+  const minimumMinutes = 15
+  return Math.max(actualMinutes, minimumMinutes)
 }
 
 export function clearTimeTrackingHistory(): void {

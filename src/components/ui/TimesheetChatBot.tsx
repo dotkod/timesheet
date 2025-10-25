@@ -16,6 +16,7 @@ import {
   getElapsedTime, 
   formatElapsedTime, 
   calculateHours,
+  calculateMinutes,
   TimeTrackingSession 
 } from "@/lib/time-tracking"
 
@@ -161,17 +162,23 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
                 setActiveSession(null)
                 setElapsedTime(0)
                 setCurrentStep('description')
-                const hours = calculateHours(getElapsedTime(session))
+                const elapsedMs = getElapsedTime(session)
+                const minutes = calculateMinutes(elapsedMs)
+                const hours = calculateHours(elapsedMs)
                 setTimesheetData({
                   date: new Date().toISOString().split('T')[0],
                   projectId: session.projectId,
                   hours: hours
                 })
                 setTimeout(() => {
+                  const actualMinutes = calculateMinutes(elapsedMs)
+                  const actualHours = calculateHours(elapsedMs)
+                  const isMinimumApplied = actualMinutes < 15
+                  
                   addBotMessage(`Time tracking stopped! 
 
 📁 **Project:** ${session.projectName} (${session.clientName})
-⏱️ **Duration:** ${formatElapsedTime(getElapsedTime(session))} (${hours} hours)
+⏱️ **Duration:** ${minutes} minutes (${hours} hours)${isMinimumApplied ? ' ⚡ *15-min minimum applied*' : ''}
 
 What did you work on during this session?`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
                 }, 500)
@@ -296,11 +303,12 @@ You can also add notes about what you're working on.`, ['Stop tracking', 'Add de
             const isFixedProject = selectedProject?.billingType === 'fixed'
             
             setTimeout(() => {
+              const billedMinutes = Math.round(timesheetData.hours * 60)
               const confirmationMessage = `Perfect! Let me confirm your timesheet entry:
 
 📅 **Date:** ${timesheetData.date}
 📁 **Project:** ${selectedProject?.name} (${selectedProject?.client.name})
-⏰ **Hours:** ${timesheetData.hours}
+⏰ **Hours:** ${timesheetData.hours} (${billedMinutes} minutes)${billedMinutes === 15 && timesheetData.hours === 0.25 ? ' ⚡ *15-min minimum*' : ''}
 📝 **Description:** ${input.trim()}
 💰 **Billable:** ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}
 
@@ -486,7 +494,6 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
                           size="sm"
                           className="text-xs h-7 px-2"
                           onClick={() => {
-                            console.log('TimesheetChatBot - Suggestion clicked:', suggestion)
                             setInputValue(suggestion)
                             processUserInput(suggestion)
                             setInputValue("") // Clear input after sending
