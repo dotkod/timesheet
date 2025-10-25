@@ -8,11 +8,12 @@ export function GlobalTimesheetChatBot() {
   const { currentWorkspace } = useWorkspace()
   
   const fetchProjects = async () => {
-    const response = await fetch('/api/projects')
+    const response = await fetch(`/api/projects?workspaceId=${currentWorkspace?.id}`)
     if (!response.ok) {
       throw new Error('Failed to fetch projects')
     }
-    return response.json()
+    const data = await response.json()
+    return data.projects || []
   }
   
   const { data: projects, loading: projectsLoading } = useData('projects', fetchProjects)

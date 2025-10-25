@@ -486,6 +486,7 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
                           size="sm"
                           className="text-xs h-7 px-2"
                           onClick={() => {
+                            console.log('TimesheetChatBot - Suggestion clicked:', suggestion)
                             setInputValue(suggestion)
                             processUserInput(suggestion)
                             setInputValue("") // Clear input after sending
