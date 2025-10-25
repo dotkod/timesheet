@@ -7,8 +7,17 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Send, Bot, User, Check, X } from "lucide-react"
+import { Send, Bot, User, Check, X, Play, Square, Clock } from "lucide-react"
 import { useWorkspace } from "@/lib/workspace-context"
+import { 
+  getTimeTrackingState, 
+  startTimeTracking, 
+  stopTimeTracking, 
+  getElapsedTime, 
+  formatElapsedTime, 
+  calculateHours,
+  TimeTrackingSession 
+} from "@/lib/time-tracking"
 
 interface Project {
   id: string
@@ -45,9 +54,12 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
-  const [currentStep, setCurrentStep] = useState<'greeting' | 'date' | 'project' | 'hours' | 'description' | 'confirm'>('greeting')
+  const [currentStep, setCurrentStep] = useState<'greeting' | 'mode' | 'date' | 'project' | 'hours' | 'description' | 'confirm' | 'tracking'>('greeting')
   const [timesheetData, setTimesheetData] = useState<Partial<TimesheetData>>({})
   const [isProcessing, setIsProcessing] = useState(false)
+  const [activeSession, setActiveSession] = useState<TimeTrackingSession | null>(null)
+  const [elapsedTime, setElapsedTime] = useState(0)
+  const [isInitialized, setIsInitialized] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { currentWorkspace } = useWorkspace()
 
@@ -59,10 +71,40 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
     scrollToBottom()
   }, [messages])
 
+  // Load active session on mount
+  useEffect(() => {
+    const state = getTimeTrackingState()
+    setActiveSession(state.activeSession)
+    setIsInitialized(true)
+  }, [])
+
+  // Update elapsed time every second when tracking
+  useEffect(() => {
+    if (!activeSession) return
+
+    const interval = setInterval(() => {
+      setElapsedTime(getElapsedTime(activeSession))
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [activeSession])
+
   useEffect(() => {
     if (isOpen && messages.length === 0) {
-      const today = new Date().toISOString().split('T')[0]
-      addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
+      const state = getTimeTrackingState()
+      if (state.activeSession) {
+        // Resume active session
+        setActiveSession(state.activeSession)
+        setCurrentStep('tracking')
+        addBotMessage(`Welcome back! You're currently tracking time for **${state.activeSession.projectName}** (${state.activeSession.clientName}). 
+
+⏱️ **Elapsed time:** ${formatElapsedTime(getElapsedTime(state.activeSession))}
+
+What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add description'])
+      } else {
+        // Start fresh
+        addBotMessage(`Hi! I'm your timesheet assistant. How would you like to log your time today?`, ['Start time tracking', 'Log completed work'])
+      }
     }
   }, [isOpen, messages.length])
 
@@ -94,6 +136,63 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
     try {
       switch (currentStep) {
         case 'greeting':
+        case 'mode':
+          if (input.toLowerCase().includes('start') || input.toLowerCase().includes('tracking')) {
+            setCurrentStep('project')
+            setTimeout(() => {
+              addBotMessage(`Great! Let's start time tracking. Which project are you working on?`, projects.map(p => p.name))
+            }, 500)
+          } else if (input.toLowerCase().includes('log') || input.toLowerCase().includes('completed')) {
+            setCurrentStep('date')
+            const today = new Date().toISOString().split('T')[0]
+            setTimeout(() => {
+              addBotMessage(`Perfect! Let's log your completed work. What date did you work on?`, ['Today', 'Yesterday', 'Different date'])
+            }, 500)
+          } else {
+            addBotMessage("Please choose how you'd like to log your time.", ['Start time tracking', 'Log completed work'])
+          }
+          break
+
+        case 'tracking':
+          if (input.toLowerCase().includes('stop')) {
+            if (activeSession) {
+              const session = stopTimeTracking()
+              if (session) {
+                setActiveSession(null)
+                setElapsedTime(0)
+                setCurrentStep('description')
+                const hours = calculateHours(getElapsedTime(session))
+                setTimesheetData({
+                  date: new Date().toISOString().split('T')[0],
+                  projectId: session.projectId,
+                  hours: hours
+                })
+                setTimeout(() => {
+                  addBotMessage(`Time tracking stopped! 
+
+📁 **Project:** ${session.projectName} (${session.clientName})
+⏱️ **Duration:** ${formatElapsedTime(getElapsedTime(session))} (${hours} hours)
+
+What did you work on during this session?`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
+                }, 500)
+              }
+            }
+          } else if (input.toLowerCase().includes('continue')) {
+            addBotMessage(`Continuing to track time for **${activeSession?.projectName}**. The timer is still running! 
+
+⏱️ **Elapsed time:** ${formatElapsedTime(elapsedTime)}
+
+You can come back anytime to stop tracking.`, ['Stop tracking', 'Add description'])
+          } else if (input.toLowerCase().includes('description')) {
+            setCurrentStep('description')
+            setTimeout(() => {
+              addBotMessage(`What are you working on for **${activeSession?.projectName}**? You can add notes about your current tasks.`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
+            }, 500)
+          } else {
+            addBotMessage("What would you like to do with your active time tracking session?", ['Stop tracking', 'Continue tracking', 'Add description'])
+          }
+          break
+
         case 'date':
           // Handle date suggestions and input
           if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('today')) {
@@ -141,11 +240,29 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
           )
           
           if (project) {
-            setTimesheetData(prev => ({ ...prev, projectId: project.id }))
-            setCurrentStep('hours')
-            setTimeout(() => {
-              addBotMessage(`Perfect! Selected ${project.name}. How many hours did you work?`, ['1h', '2h', '4h', '6h', '8h'])
-            }, 500)
+            if (currentStep === 'project' && !timesheetData.date) {
+              // Starting time tracking
+              const session = startTimeTracking(project.id, project.name, project.client.name, currentWorkspace!.id)
+              setActiveSession(session)
+              setCurrentStep('tracking')
+              setTimeout(() => {
+                addBotMessage(`🚀 **Time tracking started!**
+
+📁 **Project:** ${project.name} (${project.client.name})
+⏰ **Started at:** ${new Date().toLocaleTimeString()}
+
+I'm now tracking your time. When you're done working, just tell me to stop tracking and I'll calculate the hours automatically!
+
+You can also add notes about what you're working on.`, ['Stop tracking', 'Add description', 'Continue tracking'])
+              }, 500)
+            } else {
+              // Manual entry
+              setTimesheetData(prev => ({ ...prev, projectId: project.id }))
+              setCurrentStep('hours')
+              setTimeout(() => {
+                addBotMessage(`Perfect! Selected ${project.name}. How many hours did you work?`, ['1h', '2h', '4h', '6h', '8h'])
+              }, 500)
+            }
           } else {
             addBotMessage("I couldn't find that project. Please try typing the exact project name or click one of the suggestions above.", projects.map(p => p.name))
           }
@@ -243,8 +360,18 @@ Does this look correct?`
     setTimesheetData({})
     setInputValue("")
     setTimeout(() => {
-      const today = new Date().toISOString().split('T')[0]
-      addBotMessage(`Hi! I'm here to help you create a timesheet entry. Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
+      const state = getTimeTrackingState()
+      if (state.activeSession) {
+        setActiveSession(state.activeSession)
+        setCurrentStep('tracking')
+        addBotMessage(`Welcome back! You're currently tracking time for **${state.activeSession.projectName}** (${state.activeSession.clientName}). 
+
+⏱️ **Elapsed time:** ${formatElapsedTime(getElapsedTime(state.activeSession))}
+
+What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add description'])
+      } else {
+        addBotMessage(`Hi! I'm your timesheet assistant. How would you like to log your time today?`, ['Start time tracking', 'Log completed work'])
+      }
     }, 500)
   }
 
@@ -260,18 +387,33 @@ Does this look correct?`
     setIsOpen(open)
   }
 
-  if (!currentWorkspace) return null
+  if (!currentWorkspace || !isInitialized) return null
 
   return (
     <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
       {!isOpen ? (
-        // Icon-only state
-        <Button
-          onClick={() => handleOpenChange(true)}
-          className="h-12 w-12 rounded-full shadow-lg bg-blue-600 hover:bg-blue-700"
-        >
-          <Bot className="h-6 w-6 text-white" />
-        </Button>
+        // Icon-only state with active session indicator
+        <div className="relative">
+          <Button
+            onClick={() => handleOpenChange(true)}
+            className={`h-12 w-12 rounded-full shadow-lg ${
+              activeSession 
+                ? 'bg-green-600 hover:bg-green-700' 
+                : 'bg-blue-600 hover:bg-blue-700'
+            }`}
+          >
+            {activeSession ? (
+              <Play className="h-6 w-6 text-white" />
+            ) : (
+              <Bot className="h-6 w-6 text-white" />
+            )}
+          </Button>
+          {activeSession && (
+            <div className="absolute -top-2 -right-2 bg-green-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+              {formatElapsedTime(elapsedTime)}
+            </div>
+          )}
+        </div>
       ) : (
         // Full chat state
         <Card className="w-96 max-h-96 shadow-lg">
@@ -279,8 +421,21 @@ Does this look correct?`
             {/* Chat Header */}
             <div className="flex items-center justify-between p-3 border-b bg-muted/30">
               <div className="flex items-center gap-2">
-                <Bot className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium">Timesheet Assistant</span>
+                {activeSession ? (
+                  <Play className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Bot className="h-4 w-4 text-blue-600" />
+                )}
+                <div className="flex flex-col">
+                  <span className="text-sm font-medium">
+                    {activeSession ? 'Time Tracking' : 'Timesheet Assistant'}
+                  </span>
+                  {activeSession && (
+                    <span className="text-xs text-muted-foreground">
+                      {activeSession.projectName} • {formatElapsedTime(elapsedTime)}
+                    </span>
+                  )}
+                </div>
               </div>
               <Button
                 variant="ghost"

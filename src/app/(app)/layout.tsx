@@ -1,6 +1,7 @@
 import { TopNav } from '@/components/ui/TopNav'
 import { BottomNav } from '@/components/ui/BottomNav'
 import { MobileHeader } from '@/components/ui/MobileHeader'
+import { GlobalTimesheetChatBot } from '@/components/ui/GlobalTimesheetChatBot'
 import { WorkspaceProvider } from '@/lib/workspace-context'
 import { NavigationPreloader } from '@/components/NavigationPreloader'
 import { Suspense } from 'react'
@@ -21,6 +22,7 @@ export default function AppLayout({
             {children}
           </main>
           <BottomNav />
+          <GlobalTimesheetChatBot />
         </div>
       </WorkspaceProvider>
     </Suspense>
