@@ -6,7 +6,16 @@ import { useWorkspace } from "@/lib/workspace-context"
 
 export function GlobalTimesheetChatBot() {
   const { currentWorkspace } = useWorkspace()
-  const { data: projects, loading: projectsLoading } = useData('projects')
+  
+  const fetchProjects = async () => {
+    const response = await fetch('/api/projects')
+    if (!response.ok) {
+      throw new Error('Failed to fetch projects')
+    }
+    return response.json()
+  }
+  
+  const { data: projects, loading: projectsLoading } = useData('projects', fetchProjects)
 
   // Don't render if no workspace or projects are loading
   if (!currentWorkspace || projectsLoading) {
