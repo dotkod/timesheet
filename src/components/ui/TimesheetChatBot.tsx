@@ -303,12 +303,13 @@ You can also add notes about what you're working on.`, ['Stop tracking', 'Add de
             const isFixedProject = selectedProject?.billingType === 'fixed'
             
             setTimeout(() => {
-              const billedMinutes = Math.round(timesheetData.hours * 60)
+              const hours = timesheetData.hours || 0
+              const billedMinutes = Math.round(hours * 60)
               const confirmationMessage = `Perfect! Let me confirm your timesheet entry:
 
 📅 **Date:** ${timesheetData.date}
 📁 **Project:** ${selectedProject?.name} (${selectedProject?.client.name})
-⏰ **Hours:** ${timesheetData.hours} (${billedMinutes} minutes)${billedMinutes === 15 && timesheetData.hours === 0.25 ? ' ⚡ *15-min minimum*' : ''}
+⏰ **Hours:** ${hours} (${billedMinutes} minutes)${billedMinutes === 15 && hours === 0.25 ? ' ⚡ *15-min minimum*' : ''}
 📝 **Description:** ${input.trim()}
 💰 **Billable:** ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}
 
