@@ -10,6 +10,7 @@ import { DeleteModal } from "@/components/modals/DeleteModal"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportClientsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 import dayjs from "dayjs"
+import { CheckCircle2 } from "lucide-react"
 
 interface Client {
   id: string
@@ -24,6 +25,8 @@ interface Client {
   lastContact: string
   createdAt: string
   updatedAt: string
+  hasFixedProject?: boolean
+  latestCreditDate?: string
 }
 
 export default function Clients() {
@@ -130,6 +133,43 @@ export default function Clients() {
     }
   }
 
+  const handleMarkClientPaymentCredited = async (clientId: string) => {
+    try {
+      // Fetch client's projects to find the fixed project
+      const projectsResponse = await fetch(`/api/projects?workspaceId=${currentWorkspace?.id}`)
+      const projectsData = await projectsResponse.json()
+      const clientProjects = projectsData.projects?.filter((p: any) => 
+        p.clientId === clientId && p.billingType === 'fixed'
+      ) || []
+      
+      if (clientProjects.length === 0) {
+        setError("No fixed projects found for this client")
+        return
+      }
+
+      const fixedProject = clientProjects[0]
+      const today = dayjs().format('YYYY-MM-DD')
+      const response = await fetch('/api/projects/mark-credited', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId: fixedProject.id,
+          creditedDate: today
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        await fetchClients() // Refresh the list
+      } else {
+        setError(data.error || "Failed to mark payment as credited")
+      }
+    } catch (error) {
+      setError("Network error. Please try again.")
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -228,6 +268,27 @@ export default function Clients() {
                     <span className="text-muted-foreground">Last Contact:</span>
                     <span className="font-medium">{client.lastContact ? dayjs(client.lastContact).format('DD MMMM YYYY') : 'N/A'}</span>
                   </div>
+                  
+                  {/* Mark payment as credited for fixed projects */}
+                  {client.hasFixedProject && (
+                    <div className="flex items-center justify-between pt-2 border-t mt-2">
+                      {client.latestCreditDate ? (
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Last credited {dayjs(client.latestCreditDate).format('D MMM YYYY')}
+                        </Badge>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMarkClientPaymentCredited(client.id)}
+                          className="text-xs w-full"
+                        >
+                          Mark Payment as Credited
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 mt-4">
                   <ClientDetailsModal 

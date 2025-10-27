@@ -51,6 +51,13 @@ export async function GET(request: NextRequest) {
       .in('project_id', projectIds)
       .eq('workspace_id', workspaceId)
 
+    // Fetch salary credits for fixed projects
+    const { data: salaryCredits } = await supabaseAdmin
+      .from('salary_credits')
+      .select('project_id, credited_date')
+      .in('project_id', projectIds)
+      .order('credited_date', { ascending: false })
+
     // Transform data to match UI expectations
     const transformedClients = clients?.map(client => {
       // Calculate revenue from invoices (only paid invoices)
@@ -74,6 +81,15 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Check if client has fixed project
+      const clientProjectsList = projects?.filter(p => p.client_id === client.id) || []
+      const hasFixedProject = clientProjectsList.some(p => p.billing_type === 'fixed')
+      
+      // Get latest credit date for this client's projects
+      const clientProjectIds = clientProjectsList.map(p => p.id)
+      const clientCredits = salaryCredits?.filter(credit => clientProjectIds.includes(credit.project_id)) || []
+      const latestCredit = clientCredits.length > 0 ? clientCredits[0] : null
+
       return {
         id: client.id,
         name: client.name,
@@ -84,6 +100,8 @@ export async function GET(request: NextRequest) {
         notes: client.notes,
         totalProjects: client.projects?.[0]?.count || 0,
         totalRevenue: invoiceRevenue + timesheetRevenue,
+        hasFixedProject,
+        latestCreditDate: latestCredit?.credited_date || null,
         lastContact: client.updated_at ? new Date(client.updated_at).toISOString().split('T')[0] : null,
         createdAt: client.created_at,
         updatedAt: client.updated_at

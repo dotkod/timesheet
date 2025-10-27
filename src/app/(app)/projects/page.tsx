@@ -297,26 +297,6 @@ export default function Projects() {
                     <span className="font-medium">{project.lastActivity ? dayjs(project.lastActivity).format('DD MMMM YYYY') : 'N/A'}</span>
                   </div>
                   
-                  {/* Salary credited status for fixed projects */}
-                  {project.billingType === 'fixed' && (
-                    <div className="flex items-center justify-between pt-2 border-t">
-                      {project.salaryCreditedDate ? (
-                        <Badge className="bg-green-100 text-green-800 text-xs">
-                          <CheckCircle2 className="h-3 w-3 mr-1" />
-                          Credited {dayjs(project.salaryCreditedDate).format('D MMM YYYY')}
-                        </Badge>
-                      ) : (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleMarkSalaryCredited(project.id)}
-                          className="text-xs"
-                        >
-                          Mark Salary as Credited
-                        </Button>
-                      )}
-                    </div>
-                  )}
                 </div>
                 <div className="flex gap-2 mt-4">
                   <ProjectDetailsModal 
