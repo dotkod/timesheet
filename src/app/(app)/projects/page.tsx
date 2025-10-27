@@ -10,6 +10,7 @@ import { DeleteModal } from "@/components/modals/DeleteModal"
 import { useWorkspace } from "@/lib/workspace-context"
 import { exportProjectsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 import dayjs from "dayjs"
+import { CheckCircle2 } from "lucide-react"
 
 interface Project {
   id: string
@@ -22,6 +23,7 @@ interface Project {
   fixedAmount: number
   status: "active" | "completed" | "on-hold"
   notes?: string
+  salaryCreditedDate?: string
   totalHours: number
   totalRevenue: number
   lastActivity: string
@@ -155,6 +157,30 @@ export default function Projects() {
     }
   }
 
+  const handleMarkSalaryCredited = async (projectId: string) => {
+    try {
+      const today = dayjs().format('YYYY-MM-DD')
+      const response = await fetch('/api/projects/mark-credited', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          projectId,
+          creditedDate: today
+        })
+      })
+      
+      const data = await response.json()
+      
+      if (response.ok) {
+        await fetchProjects() // Refresh the list
+      } else {
+        setError(data.error || "Failed to mark salary as credited")
+      }
+    } catch (error) {
+      setError("Network error. Please try again.")
+    }
+  }
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -270,6 +296,27 @@ export default function Projects() {
                     <span className="text-muted-foreground">Last Activity:</span>
                     <span className="font-medium">{project.lastActivity ? dayjs(project.lastActivity).format('DD MMMM YYYY') : 'N/A'}</span>
                   </div>
+                  
+                  {/* Salary credited status for fixed projects */}
+                  {project.billingType === 'fixed' && (
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      {project.salaryCreditedDate ? (
+                        <Badge className="bg-green-100 text-green-800 text-xs">
+                          <CheckCircle2 className="h-3 w-3 mr-1" />
+                          Credited {dayjs(project.salaryCreditedDate).format('D MMM YYYY')}
+                        </Badge>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleMarkSalaryCredited(project.id)}
+                          className="text-xs"
+                        >
+                          Mark Salary as Credited
+                        </Button>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex gap-2 mt-4">
                   <ProjectDetailsModal 

@@ -73,12 +73,33 @@ export default function Dashboard() {
           .filter((t: any) => t.billable)
           .reduce((sum: number, t: any) => sum + t.total, 0)
         
-        // 2. Fixed projects revenue (monthly fee × active projects)
-        const fixedRevenue = projects
+        // 2. Fixed projects revenue (only if credited this month)
+        // Fetch salary credits from the database
+        const fixedProjectIds = projects
           .filter((p: any) => p.billingType === 'fixed' && p.status === 'active')
-          .reduce((sum: number, p: any) => sum + (p.fixedAmount || 0), 0)
+          .map((p: any) => p.id)
         
-        // 3. Paid invoices
+        let fixedRevenue = 0
+        if (fixedProjectIds.length > 0) {
+          const { data: salaryCredits } = await fetch(
+            `/api/salary-credits?projectIds=${fixedProjectIds.join(',')}`
+          ).then(r => r.json()).catch(() => ({ credits: [] }))
+          
+          // Calculate credited salary for current month
+          const now = new Date()
+          const currentMonth = now.getMonth()
+          const currentYear = now.getFullYear()
+          
+          fixedRevenue = (salaryCredits || []).reduce((sum: number, credit: any) => {
+            const creditedDate = new Date(credit.credited_date)
+            if (creditedDate.getMonth() === currentMonth && creditedDate.getFullYear() === currentYear) {
+              return sum + (credit.amount || 0)
+            }
+            return sum
+          }, 0)
+        }
+        
+        // 3. Paid invoices only (not sent/pending)
         const paidInvoiceRevenue = invoices
           .filter((i: any) => i.status === 'paid')
           .reduce((sum: number, i: any) => sum + (parseFloat(i.total) || 0), 0)

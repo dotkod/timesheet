@@ -26,6 +26,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq('workspace_id', workspaceId)
       .order('created_at', { ascending: false })
+      // Include salary_credited_date for fixed projects
 
     if (error) {
       console.error('Database error:', error)
@@ -87,6 +88,7 @@ export async function GET(request: NextRequest) {
         fixedAmount: project.fixed_amount || 0,
         status: project.status,
         notes: project.notes,
+        salaryCreditedDate: project.salary_credited_date,
         totalHours,
         totalRevenue: timesheetRevenue + (project.billing_type === 'fixed' ? (project.fixed_amount || 0) : 0) + invoiceRevenue,
         lastActivity: project.updated_at ? new Date(project.updated_at).toISOString().split('T')[0] : null,

@@ -212,6 +212,13 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invoice ID is required' }, { status: 400 })
     }
 
+    // Get the invoice first to check if status is changing to 'paid'
+    const { data: existingInvoice } = await supabaseAdmin
+      .from('invoices')
+      .select('status, client_id, date_issued, total')
+      .eq('id', id)
+      .single()
+
     const { data: invoice, error } = await supabaseAdmin
       .from('invoices')
       .update({
@@ -232,6 +239,49 @@ export async function PUT(request: NextRequest) {
     if (error) {
       console.error('Database error:', error)
       return NextResponse.json({ error: 'Failed to update invoice' }, { status: 500 })
+    }
+
+    // If status changed to 'paid', create salary_credit record
+    if (status === 'paid' && existingInvoice?.status !== 'paid') {
+      try {
+        // Find the project (client) and mark salary as credited
+        // For invoices, the "project" is the client
+        const { data: projects } = await supabaseAdmin
+          .from('projects')
+          .select('id, fixed_amount')
+          .eq('client_id', invoice.client_id)
+          .eq('billing_type', 'fixed')
+          .limit(1)
+
+        if (projects && projects.length > 0) {
+          const project = projects[0]
+          const invoiceDate = new Date(invoice.date_issued)
+          const workMonth = new Date(invoiceDate.getFullYear(), invoiceDate.getMonth(), 1)
+          
+          // Check if already credited
+          const { data: existingCredit } = await supabaseAdmin
+            .from('salary_credits')
+            .select('id')
+            .eq('project_id', project.id)
+            .eq('work_month', workMonth.toISOString().split('T')[0])
+            .single()
+
+          if (!existingCredit) {
+            await supabaseAdmin
+              .from('salary_credits')
+              .insert({
+                project_id: project.id,
+                work_month: workMonth.toISOString().split('T')[0],
+                credited_date: new Date().toISOString().split('T')[0],
+                amount: project.fixed_amount || invoice.total,
+                notes: `Automatically credited when invoice ${invoice.invoice_number} was marked as paid`
+              })
+          }
+        }
+      } catch (salaryError) {
+        // Don't fail the whole request if salary credit fails
+        console.error('Failed to create salary credit:', salaryError)
+      }
     }
 
     return NextResponse.json({ success: true, invoice })
