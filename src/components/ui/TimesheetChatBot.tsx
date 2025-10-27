@@ -241,21 +241,22 @@ You can come back anytime to stop tracking.`, ['Stop tracking', 'Add description
 
         case 'project':
           // Find project by name
-          const project = projects.find(p => 
-            p.name.toLowerCase().includes(input.toLowerCase()) ||
-            p.client.name.toLowerCase().includes(input.toLowerCase())
-          )
+          const project = projects.find(p => {
+            const projectMatch = p.name.toLowerCase().includes(input.toLowerCase())
+            const clientMatch = p.client?.name?.toLowerCase().includes(input.toLowerCase()) || false
+            return projectMatch || clientMatch
+          })
           
           if (project) {
             if (currentStep === 'project' && !timesheetData.date) {
               // Starting time tracking
-              const session = startTimeTracking(project.id, project.name, project.client.name, currentWorkspace!.id)
+              const session = startTimeTracking(project.id, project.name, project.client?.name || 'No Client', currentWorkspace!.id)
               setActiveSession(session)
               setCurrentStep('tracking')
               setTimeout(() => {
                 addBotMessage(`🚀 **Time tracking started!**
 
-📁 **Project:** ${project.name} (${project.client.name})
+📁 **Project:** ${project.name} (${project.client?.name || 'No Client'})
 ⏰ **Started at:** ${new Date().toLocaleTimeString()}
 
 I'm now tracking your time. When you're done working, just tell me to stop tracking and I'll calculate the hours automatically!
@@ -308,7 +309,7 @@ You can also add notes about what you're working on.`, ['Stop tracking', 'Add de
               const confirmationMessage = `Perfect! Let me confirm your timesheet entry:
 
 📅 **Date:** ${timesheetData.date}
-📁 **Project:** ${selectedProject?.name} (${selectedProject?.client.name})
+📁 **Project:** ${selectedProject?.name} (${selectedProject?.client?.name || 'No Client'})
 ⏰ **Hours:** ${hours} (${billedMinutes} minutes)${billedMinutes === 15 && hours === 0.25 ? ' ⚡ *15-min minimum*' : ''}
 📝 **Description:** ${input.trim()}
 💰 **Billable:** ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}

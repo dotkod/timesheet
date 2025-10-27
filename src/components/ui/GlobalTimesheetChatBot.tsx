@@ -13,7 +13,16 @@ export function GlobalTimesheetChatBot() {
       throw new Error('Failed to fetch projects')
     }
     const data = await response.json()
-    return data.projects || []
+    // Transform projects to match TimesheetChatBot expected structure
+    return (data.projects || []).map((p: any) => ({
+      id: p.id,
+      name: p.name,
+      client: {
+        name: p.client || 'No Client'
+      },
+      billingType: p.billingType,
+      fixedAmount: p.fixedAmount
+    }))
   }
   
   const { data: projects, loading: projectsLoading } = useData('projects', fetchProjects)
