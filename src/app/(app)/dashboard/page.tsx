@@ -51,21 +51,44 @@ export default function Dashboard() {
       const projectsResponse = await fetch(`/api/projects?workspaceId=${currentWorkspace.id}`)
       const projectsData = await projectsResponse.json()
       
+      // Fetch invoices for stats
+      const invoicesResponse = await fetch(`/api/invoices?workspaceId=${currentWorkspace.id}`)
+      const invoicesData = await invoicesResponse.json()
+      
       if (timesheetsResponse.ok && projectsResponse.ok) {
         const timesheets = timesheetsData.timesheets || []
         const projects = projectsData.projects || []
+        const invoices = invoicesData.invoices || []
         
         // Calculate stats
         const totalHours = timesheets.reduce((sum: number, t: any) => sum + t.hours, 0)
         const activeProjects = projects.filter((p: any) => p.status === 'active').length
-        const monthlyRevenue = timesheets
+        
+        // Count pending invoices (draft or sent, not paid)
+        const pendingInvoices = invoices.filter((i: any) => i.status === 'draft' || i.status === 'sent').length
+        
+        // Calculate monthly revenue from:
+        // 1. Billable timesheets (hourly projects)
+        const timesheetRevenue = timesheets
           .filter((t: any) => t.billable)
           .reduce((sum: number, t: any) => sum + t.total, 0)
+        
+        // 2. Fixed projects revenue (monthly fee × active projects)
+        const fixedRevenue = projects
+          .filter((p: any) => p.billingType === 'fixed' && p.status === 'active')
+          .reduce((sum: number, p: any) => sum + (p.fixedAmount || 0), 0)
+        
+        // 3. Paid invoices
+        const paidInvoiceRevenue = invoices
+          .filter((i: any) => i.status === 'paid')
+          .reduce((sum: number, i: any) => sum + (parseFloat(i.total) || 0), 0)
+        
+        const monthlyRevenue = timesheetRevenue + fixedRevenue + paidInvoiceRevenue
         
         setStats({
           totalHours,
           activeProjects,
-          pendingInvoices: 0, // Will implement invoices later
+          pendingInvoices,
           monthlyRevenue
         })
         
