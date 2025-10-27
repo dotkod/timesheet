@@ -11,6 +11,8 @@ import { useWorkspace } from "@/lib/workspace-context"
 import { exportTimesheetsToExcel, getCurrencySymbol } from "@/lib/excel-export"
 import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import dayjs from "dayjs"
 
 interface Timesheet {
   id: string
@@ -37,10 +39,12 @@ interface Project {
 
 export default function Timesheets() {
   const [timesheets, setTimesheets] = useState<Timesheet[]>([])
+  const [filteredTimesheets, setFilteredTimesheets] = useState<Timesheet[]>([])
   const [projects, setProjects] = useState<Project[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [workspaceSettings, setWorkspaceSettings] = useState<any>({})
+  const [dateFilter, setDateFilter] = useState<string>("all")
   const { currentWorkspace } = useWorkspace()
 
   const fetchTimesheets = async () => {
@@ -108,6 +112,33 @@ export default function Timesheets() {
     fetchWorkspaceSettings()
   }, [currentWorkspace])
 
+  // Filter timesheets based on selected date filter
+  useEffect(() => {
+    if (dateFilter === "all") {
+      setFilteredTimesheets(timesheets)
+      return
+    }
+
+    const now = dayjs()
+    const filtered = timesheets.filter((timesheet) => {
+      const timesheetDate = dayjs(timesheet.date)
+      
+      if (dateFilter === "today") {
+        return timesheetDate.isSame(now, 'day')
+      } else if (dateFilter === "this-week") {
+        return timesheetDate.isSame(now, 'week')
+      } else if (dateFilter === "this-month") {
+        return timesheetDate.isSame(now, 'month')
+      } else if (dateFilter === "last-month") {
+        return timesheetDate.isSame(now.subtract(1, 'month'), 'month')
+      } else {
+        return true
+      }
+    })
+
+    setFilteredTimesheets(filtered)
+  }, [timesheets, dateFilter])
+
   const handleSaveTimesheet = async (timesheetData: any) => {
     try {
       setError("") // Clear any previous errors
@@ -152,17 +183,23 @@ export default function Timesheets() {
   }
 
   const exportToExcel = () => {
-    if (timesheets.length === 0) {
+    const timesheetsToExport = dateFilter === "all" ? timesheets : filteredTimesheets
+    
+    if (timesheetsToExport.length === 0) {
       setError("No timesheets to export")
       return
     }
     
-    const result = exportTimesheetsToExcel(timesheets)
+    const result = exportTimesheetsToExcel(timesheetsToExport)
     if (result.success) {
-      console.log(`Exported ${timesheets.length} timesheets to ${result.filename}`)
+      console.log(`Exported ${timesheetsToExport.length} timesheets to ${result.filename}`)
     } else {
       setError(result.error || "Failed to export timesheets")
     }
+  }
+
+  const formatTimestamp = (createdAt: string) => {
+    return dayjs(createdAt).format('h.mmA D MMM YYYY')
   }
 
   if (loading) {
@@ -198,6 +235,18 @@ export default function Timesheets() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
+          <Select value={dateFilter} onValueChange={setDateFilter}>
+            <SelectTrigger className="w-full sm:w-[180px]">
+              <SelectValue placeholder="Filter by date" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All timesheets</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="this-week">This week</SelectItem>
+              <SelectItem value="this-month">This month</SelectItem>
+              <SelectItem value="last-month">Last month</SelectItem>
+            </SelectContent>
+          </Select>
           <Button variant="outline" onClick={exportToExcel} className="w-full sm:w-auto">
             Export Excel
           </Button>
@@ -211,14 +260,18 @@ export default function Timesheets() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {timesheets.length === 0 ? (
+        {filteredTimesheets.length === 0 ? (
           <Card className="col-span-full">
             <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">No timesheets found. Create your first timesheet entry to get started.</p>
+              <p className="text-muted-foreground">
+                {timesheets.length === 0 
+                  ? "No timesheets found. Create your first timesheet entry to get started."
+                  : "No timesheets found for the selected filter."}
+              </p>
             </CardContent>
           </Card>
         ) : (
-          timesheets.map((timesheet) => (
+          filteredTimesheets.map((timesheet) => (
             <Card key={timesheet.id} className="hover:shadow-sm transition-shadow">
               <CardContent className="p-4">
                 <div className="space-y-3">
@@ -284,6 +337,11 @@ export default function Timesheets() {
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
                     <span>{timesheet.date}</span>
                     <span>{timesheet.hours}h</span>
+                  </div>
+
+                  {/* Timestamp */}
+                  <div className="text-xs text-muted-foreground">
+                    <span>{formatTimestamp(timesheet.createdAt)}</span>
                   </div>
 
                   {/* Billable badge */}
