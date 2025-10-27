@@ -51,93 +51,50 @@ export function TimesheetDetailsModal({ timesheet, workspaceSettings, trigger }:
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Project & Client Info */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FolderOpen className="h-4 w-4" />
-                Project Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Project</span>
-                <span className="font-medium">{timesheet.project}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Client</span>
-                <Badge variant="outline">{timesheet.client}</Badge>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Billable</span>
-                <Badge className={timesheet.billable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
-                  {timesheet.billable ? "Billable" : "Non-billable"}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="space-y-4">
+          {/* Key Information - Compact Grid */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            <div>
+              <span className="text-muted-foreground">Project</span>
+              <p className="font-medium">{timesheet.project}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Client</span>
+              <p className="font-medium">{timesheet.client}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Date</span>
+              <p className="font-medium">{dayjs(timesheet.date).format('DD MMM YYYY')}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Hours</span>
+              <p className="font-medium">{timesheet.hours}h</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Rate</span>
+              <p className="font-medium">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">Total</span>
+              <p className="font-medium text-lg">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</p>
+            </div>
+          </div>
 
-          {/* Time & Date Info */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Time Information
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Date</span>
-                <span className="font-medium">{dayjs(timesheet.date).format('DD MMMM YYYY')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Hours Worked</span>
-                <span className="font-medium">{timesheet.hours}h</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Hourly Rate</span>
-                <span className="font-medium">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.hourlyRate}/h</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Total Amount</span>
-                <span className="font-medium text-lg">{getCurrencySymbol(workspaceSettings.currency || 'MYR')}{timesheet.total.toFixed(2)}</span>
-              </div>
-            </CardContent>
-          </Card>
+          {/* Status */}
+          <div className="flex items-center gap-2">
+            <Badge className={timesheet.billable ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}>
+              {timesheet.billable ? "Billable" : "Non-billable"}
+            </Badge>
+            <span className="text-xs text-muted-foreground">
+              Created: {dayjs(timesheet.createdAt).format('DD MMM YY, HH:mm')}
+            </span>
+          </div>
 
           {/* Description */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Description
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm leading-relaxed">{timesheet.description}</p>
-            </CardContent>
-          </Card>
-
-          {/* Metadata */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Entry Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Created</span>
-                <span className="text-sm">{dayjs(timesheet.createdAt).format('DD MMMM YYYY, HH:mm')}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Entry ID</span>
-                <span className="text-sm font-mono text-xs">{timesheet.id}</span>
-              </div>
-            </CardContent>
-          </Card>
+          <div>
+            <p className="text-sm font-medium mb-1">Description</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{timesheet.description}</p>
+          </div>
         </div>
       </DialogContent>
     </Dialog>

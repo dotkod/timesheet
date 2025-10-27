@@ -198,6 +198,10 @@ export default function Timesheets() {
     }
   }
 
+  const formatTime = (dateString: string) => {
+    return dayjs(dateString).format('HH:mm')
+  }
+
   if (loading) {
     return (
       <div className="space-y-8">
@@ -331,7 +335,11 @@ export default function Timesheets() {
 
                   {/* Date, hours, and billable status */}
                   <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">{timesheet.date}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-muted-foreground">{timesheet.date}</span>
+                      <span className="text-muted-foreground/60">•</span>
+                      <span className="text-muted-foreground">{formatTime(timesheet.createdAt)}</span>
+                    </div>
                     <div className="flex items-center gap-2">
                       {timesheet.billable && (
                         <Badge className="bg-green-100 text-green-800 text-[10px] px-1.5 py-0 h-4">Billable</Badge>

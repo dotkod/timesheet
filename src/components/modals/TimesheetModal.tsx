@@ -118,41 +118,30 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
       </DialogTrigger>
       <DialogContent className="max-w-2xl w-[95vw] sm:w-[95vw] md:w-[90vw] lg:w-[800px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            {timesheet ? "Edit Timesheet Entry" : "Add New Timesheet Entry"}
+          <DialogTitle className="text-lg">
+            {timesheet ? "Edit Timesheet" : "Add Timesheet"}
           </DialogTitle>
-          <DialogDescription>
-            {timesheet ? "Update your time tracking details below." : "Track your work hours and activities."}
-          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-6 overflow-hidden">
+        <form onSubmit={handleSubmit} className="space-y-4 overflow-hidden">
           
           {/* Date and Project Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2 overflow-hidden">
-              <Label htmlFor="date" className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                Date *
-              </Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="date">Date *</Label>
               <Input
                 id="date"
                 type="date"
                 value={formData.date}
                 onChange={(e) => handleChange("date", e.target.value)}
                 required
-                className="h-11 w-full max-w-full"
-                autoFocus={false}
+                className="h-10"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="project" className="flex items-center gap-2">
-                <FolderOpen className="h-4 w-4" />
-                Project *
-              </Label>
+            <div className="space-y-1.5">
+              <Label htmlFor="project">Project *</Label>
               <Select value={formData.projectId} onValueChange={(value) => handleChange("projectId", value)}>
-                <SelectTrigger className="h-11">
-                  <SelectValue placeholder="Select a project" />
+                <SelectTrigger className="h-10">
+                  <SelectValue placeholder="Select project" />
                 </SelectTrigger>
                 <SelectContent>
                   {projects.map((project) => (
@@ -169,12 +158,9 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
           </div>
 
           {/* Hours and Billable Row */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="hours" className="flex items-center gap-2">
-                <Clock className="h-4 w-4" />
-                Hours *
-              </Label>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <Label htmlFor="hours">Hours *</Label>
               <Input
                 id="hours"
                 type="number"
@@ -185,80 +171,60 @@ export function TimesheetModal({ timesheet, projects, onSave, trigger }: Timeshe
                 onChange={(e) => handleChange("hours", parseFloat(e.target.value) || 1)}
                 placeholder="1.00"
                 required
-                className="h-11 w-full min-w-0"
-                autoFocus={false}
+                className="h-10"
               />
-              <p className="text-xs text-muted-foreground">Enter hours in decimal format (e.g., 1.5 for 1 hour 30 minutes)</p>
+              <p className="text-xs text-muted-foreground">Decimal format (e.g., 1.5 = 1h 30m)</p>
             </div>
-            {/* Only show billable status for hourly projects */}
             {!isFixedProject && (
-              <div className="space-y-2">
-                <Label className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4" />
-                  Billable Status
-                </Label>
-                <Card className="p-4">
-                  <CardContent className="p-0">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="text-sm font-medium">Billable to Client</p>
-                        <p className="text-xs text-muted-foreground">This time entry will be included in invoices</p>
-                      </div>
-                      <Switch
-                        checked={formData.billable}
-                        onCheckedChange={(checked) => handleChange("billable", checked)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+              <div className="space-y-1.5">
+                <Label>Billable</Label>
+                <div className="flex items-center gap-2 border rounded-md px-3 h-10">
+                  <p className="text-sm flex-1">Billable to Client</p>
+                  <Switch
+                    checked={formData.billable}
+                    onCheckedChange={(checked) => handleChange("billable", checked)}
+                  />
+                </div>
               </div>
             )}
           </div>
 
           {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Description *
-            </Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
               value={formData.description}
               onChange={(e) => handleChange("description", e.target.value)}
-              rows={4}
-              placeholder="Describe what you worked on... (e.g., 'Fixed login bug', 'Implemented user dashboard', 'Code review')"
+              rows={3}
+              placeholder="Describe what you worked on..."
               required
-              className="resize-none w-full"
-              autoFocus={false}
+              className="resize-none"
             />
-            <p className="text-xs text-muted-foreground">Be specific about the work completed</p>
           </div>
 
           {/* Quick Hours Buttons */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Quick Hours</Label>
-            <div className="flex gap-2 flex-wrap">
-              {[0.5, 1, 1.5, 2, 4, 8].map((hours) => (
-                <Button
-                  key={hours}
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleChange("hours", hours)}
-                  className="text-xs"
-                >
-                  {hours}h
-                </Button>
-              ))}
-            </div>
+          <div className="flex gap-1.5">
+            {[0.5, 1, 1.5, 2, 4, 8].map((hours) => (
+              <Button
+                key={hours}
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => handleChange("hours", hours)}
+                className="text-xs h-8"
+              >
+                {hours}h
+              </Button>
+            ))}
           </div>
 
-          <DialogFooter className="gap-2 flex-col sm:flex-row">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)} className="w-full sm:w-auto">
+          <DialogFooter className="gap-2 sm:justify-end">
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
-            <Button type="submit" className="w-full sm:w-auto min-w-[120px]">
-              {timesheet ? "Update Entry" : "Create Entry"}
+            <Button type="submit">
+              {timesheet ? "Update" : "Create"}
             </Button>
           </DialogFooter>
         </form>
