@@ -198,10 +198,6 @@ export default function Timesheets() {
     }
   }
 
-  const formatTimestamp = (createdAt: string) => {
-    return dayjs(createdAt).format('h.mmA D MMM YYYY')
-  }
-
   if (loading) {
     return (
       <div className="space-y-8">
@@ -272,57 +268,57 @@ export default function Timesheets() {
           </Card>
         ) : (
           filteredTimesheets.map((timesheet) => (
-            <Card key={timesheet.id} className="hover:shadow-sm transition-shadow">
-              <CardContent className="p-4">
-                <div className="space-y-3">
+            <Card key={timesheet.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-3">
+                <div className="space-y-2">
                   {/* Header with project name and dropdown */}
-                  <div className="flex items-start justify-between">
+                  <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
-                      <h3 className="text-sm font-medium truncate">{timesheet.project}</h3>
-                      <Badge variant="outline" className="text-xs mt-1">{timesheet.client}</Badge>
+                      <h3 className="text-sm font-semibold truncate">{timesheet.project}</h3>
+                      <p className="text-xs text-muted-foreground truncate">{timesheet.client}</p>
                     </div>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button variant="ghost" size="sm" className="h-7 w-7 p-0 -mt-1 -mr-1">
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
+                      <DropdownMenuContent align="end" className="w-40">
+                        <DropdownMenuItem className="cursor-pointer" asChild>
                           <TimesheetDetailsModal 
                             timesheet={timesheet} 
                             workspaceSettings={workspaceSettings}
                             trigger={
-                              <div className="flex items-center gap-2 w-full">
+                              <span className="flex items-center gap-2">
                                 <Eye className="h-4 w-4" />
-                                View Details
-                              </div>
+                                View
+                              </span>
                             }
                           />
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem className="cursor-pointer" asChild>
                           <TimesheetModal 
                             timesheet={timesheet} 
                             projects={projects}
                             onSave={handleSaveTimesheet}
                             trigger={
-                              <div className="flex items-center gap-2 w-full">
+                              <span className="flex items-center gap-2">
                                 <Edit className="h-4 w-4" />
                                 Edit
-                              </div>
+                              </span>
                             }
                           />
                         </DropdownMenuItem>
-                        <DropdownMenuItem asChild>
+                        <DropdownMenuItem className="cursor-pointer text-destructive focus:text-destructive" asChild>
                           <DeleteModal
                             itemType="Timesheet"
                             itemName={`${timesheet.project} - ${timesheet.date}`}
                             onConfirm={() => handleDeleteTimesheet(timesheet.id)}
                             trigger={
-                              <div className="flex items-center gap-2 w-full text-destructive">
+                              <span className="flex items-center gap-2">
                                 <Trash2 className="h-4 w-4" />
                                 Delete
-                              </div>
+                              </span>
                             }
                           />
                         </DropdownMenuItem>
@@ -333,21 +329,16 @@ export default function Timesheets() {
                   {/* Description */}
                   <p className="text-xs text-muted-foreground line-clamp-2">{timesheet.description}</p>
 
-                  {/* Date and hours */}
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>{timesheet.date}</span>
-                    <span>{timesheet.hours}h</span>
+                  {/* Date, hours, and billable status */}
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">{timesheet.date}</span>
+                    <div className="flex items-center gap-2">
+                      {timesheet.billable && (
+                        <Badge className="bg-green-100 text-green-800 text-[10px] px-1.5 py-0 h-4">Billable</Badge>
+                      )}
+                      <span className="font-medium">{timesheet.hours}h</span>
+                    </div>
                   </div>
-
-                  {/* Timestamp */}
-                  <div className="text-xs text-muted-foreground">
-                    <span>{formatTimestamp(timesheet.createdAt)}</span>
-                  </div>
-
-                  {/* Billable badge */}
-                  {timesheet.billable && (
-                    <Badge className="bg-green-100 text-green-800 text-xs w-fit">Billable</Badge>
-                  )}
                 </div>
               </CardContent>
             </Card>

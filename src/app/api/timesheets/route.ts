@@ -25,6 +25,7 @@ export async function GET(request: NextRequest) {
       `)
       .eq('workspace_id', workspaceId)
       .order('date', { ascending: false })
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error('Database error:', error)
