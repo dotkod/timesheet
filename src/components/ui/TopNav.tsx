@@ -56,6 +56,9 @@ export function TopNav() {
             <Link href={createLink("/invoices")} className="text-sm font-medium hover:text-primary">
               Invoices
             </Link>
+            <Link href={createLink("/payments")} className="text-sm font-medium hover:text-primary">
+              Payments
+            </Link>
             <Link href={createLink("/settings")} className="text-sm font-medium hover:text-primary">
               Settings
             </Link>
