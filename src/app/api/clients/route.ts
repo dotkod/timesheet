@@ -81,12 +81,10 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Check if client has fixed project
-      const clientProjectsList = projects?.filter(p => p.client_id === client.id) || []
-      const hasFixedProject = clientProjectsList.some(p => p.billing_type === 'fixed')
+      // Check if client has fixed project (reuse clientProjects from above)
+      const hasFixedProject = clientProjects.some(p => p.billing_type === 'fixed')
       
       // Get latest credit date for this client's projects
-      const clientProjectIds = clientProjectsList.map(p => p.id)
       const clientCredits = salaryCredits?.filter(credit => clientProjectIds.includes(credit.project_id)) || []
       const latestCredit = clientCredits.length > 0 ? clientCredits[0] : null
 
