@@ -31,21 +31,64 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch clients' }, { status: 500 })
     }
 
+    // Fetch invoices for revenue calculation
+    const { data: invoices } = await supabaseAdmin
+      .from('invoices')
+      .select('id, client_id, total, status')
+      .eq('workspace_id', workspaceId)
+
+    // Fetch timesheets for projects owned by clients
+    const clientIds = clients?.map(c => c.id) || []
+    const { data: projects } = await supabaseAdmin
+      .from('projects')
+      .select('id, client_id, billing_type, hourly_rate, fixed_amount')
+      .in('client_id', clientIds)
+
+    const projectIds = projects?.map(p => p.id) || []
+    const { data: timesheets } = await supabaseAdmin
+      .from('timesheets')
+      .select('project_id, hours, billable')
+      .in('project_id', projectIds)
+      .eq('workspace_id', workspaceId)
+
     // Transform data to match UI expectations
-    const transformedClients = clients?.map(client => ({
-      id: client.id,
-      name: client.name,
-      email: client.contact_email,
-      phone: client.phone,
-      address: client.billing_address,
-      status: client.status,
-      notes: client.notes,
-      totalProjects: client.projects?.[0]?.count || 0,
-      totalRevenue: 0, // Will calculate from projects/timesheets
-      lastContact: client.updated_at ? new Date(client.updated_at).toISOString().split('T')[0] : null,
-      createdAt: client.created_at,
-      updatedAt: client.updated_at
-    })) || []
+    const transformedClients = clients?.map(client => {
+      // Calculate revenue from invoices (only paid invoices)
+      const clientInvoices = invoices?.filter(inv => inv.client_id === client.id && inv.status === 'paid') || []
+      const invoiceRevenue = clientInvoices.reduce((sum, inv) => sum + (parseFloat(inv.total) || 0), 0)
+
+      // Calculate revenue from timesheets (billable hours * hourly rate)
+      const clientProjects = projects?.filter(p => p.client_id === client.id) || []
+      const clientProjectIds = clientProjects.map(p => p.id)
+      const clientTimesheets = timesheets?.filter(t => clientProjectIds.includes(t.project_id)) || []
+      
+      let timesheetRevenue = 0
+      for (const timesheet of clientTimesheets) {
+        const project = clientProjects.find(p => p.id === timesheet.project_id)
+        if (project && timesheet.billable) {
+          if (project.billing_type === 'hourly') {
+            timesheetRevenue += (parseFloat(timesheet.hours) || 0) * (project.hourly_rate || 0)
+          } else if (project.billing_type === 'fixed') {
+            timesheetRevenue += project.fixed_amount || 0
+          }
+        }
+      }
+
+      return {
+        id: client.id,
+        name: client.name,
+        email: client.contact_email,
+        phone: client.phone,
+        address: client.billing_address,
+        status: client.status,
+        notes: client.notes,
+        totalProjects: client.projects?.[0]?.count || 0,
+        totalRevenue: invoiceRevenue + timesheetRevenue,
+        lastContact: client.updated_at ? new Date(client.updated_at).toISOString().split('T')[0] : null,
+        createdAt: client.created_at,
+        updatedAt: client.updated_at
+      }
+    }) || []
 
     return NextResponse.json({ clients: transformedClients })
   } catch (error) {

@@ -32,26 +32,72 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 })
     }
 
-    // Transform data to match UI expectations
-    const transformedProjects = projects?.map(project => ({
-      id: project.id,
-      name: project.name,
-      code: project.code,
-      clientId: project.client_id,
-      client: project.clients?.name || 'No Client',
-      billingType: project.billing_type || 'hourly',
-      hourlyRate: project.hourly_rate || 0,
-      fixedAmount: project.fixed_amount || 0,
-      status: project.status,
-      notes: project.notes,
-      totalHours: 0, // Will calculate from timesheets
-      totalRevenue: 0, // Will calculate from timesheets
-      lastActivity: project.updated_at ? new Date(project.updated_at).toISOString().split('T')[0] : null,
-      createdAt: project.created_at,
-      updatedAt: project.updated_at
-    })) || []
+    // Fetch timesheets for all projects
+    const projectIds = projects?.map(p => p.id) || []
+    const { data: timesheets } = await supabaseAdmin
+      .from('timesheets')
+      .select('project_id, hours, billable')
+      .in('project_id', projectIds)
+      .eq('workspace_id', workspaceId)
 
-    return NextResponse.json({ projects: transformedProjects })
+    // Fetch invoices for revenue calculation
+    const { data: invoices } = await supabaseAdmin
+      .from('invoices')
+      .select('*, invoice_items(*)')
+      .eq('workspace_id', workspaceId)
+
+    // Calculate hours and revenue for each project
+    const transformedProjects = projects?.map(async project => {
+      const projectTimesheets = timesheets?.filter(t => t.project_id === project.id) || []
+      const totalHours = projectTimesheets.reduce((sum, t) => sum + (parseFloat(t.hours) || 0), 0)
+      
+      // Calculate revenue from timesheets (billable hours * hourly rate)
+      let timesheetRevenue = 0
+      if (project.billing_type === 'hourly') {
+        timesheetRevenue = projectTimesheets
+          .filter(t => t.billable)
+          .reduce((sum, t) => sum + (parseFloat(t.hours) || 0) * (project.hourly_rate || 0), 0)
+      }
+
+      // Calculate revenue from invoices
+      let invoiceRevenue = 0
+      if (invoices) {
+        for (const invoice of invoices) {
+          const invoiceItems = invoice.invoice_items || []
+          const projectInvoiceItems = invoiceItems.filter((item: any) => {
+            // Assuming invoice items reference projects somehow
+            // We'll match by description or project name
+            return item.description && item.description.includes(project.name)
+          })
+          
+          if (projectInvoiceItems.length > 0) {
+            invoiceRevenue += projectInvoiceItems.reduce((sum: number, item: any) => sum + (parseFloat(item.total) || 0), 0)
+          }
+        }
+      }
+
+      return {
+        id: project.id,
+        name: project.name,
+        code: project.code,
+        clientId: project.client_id,
+        client: project.clients?.name || 'No Client',
+        billingType: project.billing_type || 'hourly',
+        hourlyRate: project.hourly_rate || 0,
+        fixedAmount: project.fixed_amount || 0,
+        status: project.status,
+        notes: project.notes,
+        totalHours,
+        totalRevenue: timesheetRevenue + (project.billing_type === 'fixed' ? (project.fixed_amount || 0) : 0) + invoiceRevenue,
+        lastActivity: project.updated_at ? new Date(project.updated_at).toISOString().split('T')[0] : null,
+        createdAt: project.created_at,
+        updatedAt: project.updated_at
+      }
+    }) || []
+
+    const resolvedProjects = await Promise.all(transformedProjects)
+
+    return NextResponse.json({ projects: resolvedProjects })
   } catch (error) {
     console.error('API error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
