@@ -9,8 +9,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next()
   }
 
-  // Skip middleware for static files
-  if (pathname.startsWith('/_next/') || pathname.startsWith('/favicon')) {
+  // Skip middleware for static and public assets (must be accessible without auth)
+  if (
+    pathname.startsWith('/_next/') ||
+    pathname.startsWith('/favicon') ||
+    pathname.startsWith('/icons') ||
+    pathname === '/sw.js' ||
+    pathname === '/manifest.json' ||
+    pathname === '/manifest.webmanifest' ||
+    pathname === '/robots.txt'
+  ) {
     return NextResponse.next()
   }
 
@@ -39,6 +47,6 @@ export const config = {
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!login|api/auth/login|_next/static|_next/image|favicon.ico).*)',
+    '/((?!login|api/auth/login|_next/static|_next/image|favicon.ico|icons|sw.js|manifest.json|manifest.webmanifest|robots.txt).*)',
   ],
 }

@@ -21,7 +21,12 @@ export async function GET(request: NextRequest) {
       .from('timesheets')
       .select(`
         *,
-        projects:project_id(name, hourly_rate, clients:client_id(name))
+        projects:project_id(name, hourly_rate, clients:client_id(name)),
+        timesheet_todo_items(
+          id,
+          hours_allocated,
+          todo_items:todo_item_id(id, title, status, is_archived)
+        )
       `)
       .eq('workspace_id', workspaceId)
       .order('date', { ascending: false })
@@ -44,6 +49,13 @@ export async function GET(request: NextRequest) {
       billable: timesheet.billable,
       hourlyRate: timesheet.projects?.hourly_rate || 0,
       total: timesheet.billable ? timesheet.hours * (timesheet.projects?.hourly_rate || 0) : 0,
+      todoItems: timesheet.timesheet_todo_items?.map((tti: any) => ({
+        id: tti.todo_items?.id,
+        title: tti.todo_items?.title,
+        status: tti.todo_items?.status,
+        isArchived: tti.todo_items?.is_archived,
+        hoursAllocated: tti.hours_allocated
+      })) || [],
       createdAt: timesheet.created_at,
       updatedAt: timesheet.updated_at
     })) || []
@@ -64,12 +76,23 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { date, projectId, hours, description, billable, workspaceId } = body
+    const { date, projectId, hours, description, billable, workspaceId, todoItems } = body
 
     if (!date || !projectId || !hours || !description || !workspaceId) {
       return NextResponse.json({ 
         error: 'Date, project ID, hours, description, and workspace ID are required' 
       }, { status: 400 })
+    }
+
+    // Validate todo items hours allocation if provided
+    if (todoItems && Array.isArray(todoItems)) {
+      const totalAllocatedHours = todoItems.reduce((sum: number, item: any) => 
+        sum + (parseFloat(item.hoursAllocated) || 0), 0)
+      if (totalAllocatedHours > parseFloat(hours)) {
+        return NextResponse.json({ 
+          error: 'Total allocated hours cannot exceed timesheet hours' 
+        }, { status: 400 })
+      }
     }
 
     const { data: timesheet, error } = await supabaseAdmin
@@ -94,21 +117,61 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create timesheet entry' }, { status: 500 })
     }
 
+    // Create todo item associations if provided
+    if (todoItems && Array.isArray(todoItems) && todoItems.length > 0) {
+      const associations = todoItems.map((item: any) => ({
+        timesheet_id: timesheet.id,
+        todo_item_id: item.todoItemId,
+        hours_allocated: parseFloat(item.hoursAllocated) || 0
+      }))
+
+      const { error: assocError } = await supabaseAdmin
+        .from('timesheet_todo_items')
+        .insert(associations)
+
+      if (assocError) {
+        console.error('Failed to create todo item associations:', assocError)
+        // Continue anyway - timesheet is created
+      }
+    }
+
+    // Fetch with associations
+    const { data: timesheetWithTodos } = await supabaseAdmin
+      .from('timesheets')
+      .select(`
+        *,
+        projects:project_id(name, hourly_rate, clients:client_id(name)),
+        timesheet_todo_items(
+          id,
+          hours_allocated,
+          todo_items:todo_item_id(id, title, status, is_archived)
+        )
+      `)
+      .eq('id', timesheet.id)
+      .single()
+
     return NextResponse.json({ 
       success: true, 
       timesheet: {
-        id: timesheet.id,
-        date: timesheet.date,
-        projectId: timesheet.project_id,
-        project: timesheet.projects?.name || 'No Project',
-        client: timesheet.projects?.clients?.name || 'No Client',
-        hours: timesheet.hours,
-        description: timesheet.description,
-        billable: timesheet.billable,
-        hourlyRate: timesheet.projects?.hourly_rate || 0,
-        total: timesheet.billable ? timesheet.hours * (timesheet.projects?.hourly_rate || 0) : 0,
-        createdAt: timesheet.created_at,
-        updatedAt: timesheet.updated_at
+        id: timesheetWithTodos.id,
+        date: timesheetWithTodos.date,
+        projectId: timesheetWithTodos.project_id,
+        project: timesheetWithTodos.projects?.name || 'No Project',
+        client: timesheetWithTodos.projects?.clients?.name || 'No Client',
+        hours: timesheetWithTodos.hours,
+        description: timesheetWithTodos.description,
+        billable: timesheetWithTodos.billable,
+        hourlyRate: timesheetWithTodos.projects?.hourly_rate || 0,
+        total: timesheetWithTodos.billable ? timesheetWithTodos.hours * (timesheetWithTodos.projects?.hourly_rate || 0) : 0,
+        todoItems: timesheetWithTodos.timesheet_todo_items?.map((tti: any) => ({
+          id: tti.todo_items?.id,
+          title: tti.todo_items?.title,
+          status: tti.todo_items?.status,
+          isArchived: tti.todo_items?.is_archived,
+          hoursAllocated: tti.hours_allocated
+        })) || [],
+        createdAt: timesheetWithTodos.created_at,
+        updatedAt: timesheetWithTodos.updated_at
       }
     })
   } catch (error) {
@@ -126,12 +189,23 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { id, date, projectId, hours, description, billable } = body
+    const { id, date, projectId, hours, description, billable, todoItems } = body
 
     if (!id || !date || !projectId || !hours || !description) {
       return NextResponse.json({ 
         error: 'ID, date, project ID, hours, and description are required' 
       }, { status: 400 })
+    }
+
+    // Validate todo items hours allocation if provided
+    if (todoItems && Array.isArray(todoItems)) {
+      const totalAllocatedHours = todoItems.reduce((sum: number, item: any) => 
+        sum + (parseFloat(item.hoursAllocated) || 0), 0)
+      if (totalAllocatedHours > parseFloat(hours)) {
+        return NextResponse.json({ 
+          error: 'Total allocated hours cannot exceed timesheet hours' 
+        }, { status: 400 })
+      }
     }
 
     const { data: timesheet, error } = await supabaseAdmin
@@ -155,21 +229,70 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to update timesheet entry' }, { status: 500 })
     }
 
+    // Update todo item associations if provided
+    if (todoItems !== undefined) {
+      // Delete existing associations
+      await supabaseAdmin
+        .from('timesheet_todo_items')
+        .delete()
+        .eq('timesheet_id', id)
+
+      // Create new associations if provided
+      if (Array.isArray(todoItems) && todoItems.length > 0) {
+        const associations = todoItems.map((item: any) => ({
+          timesheet_id: id,
+          todo_item_id: item.todoItemId,
+          hours_allocated: parseFloat(item.hoursAllocated) || 0
+        }))
+
+        const { error: assocError } = await supabaseAdmin
+          .from('timesheet_todo_items')
+          .insert(associations)
+
+        if (assocError) {
+          console.error('Failed to update todo item associations:', assocError)
+          // Continue anyway - timesheet is updated
+        }
+      }
+    }
+
+    // Fetch with associations
+    const { data: timesheetWithTodos } = await supabaseAdmin
+      .from('timesheets')
+      .select(`
+        *,
+        projects:project_id(name, hourly_rate, clients:client_id(name)),
+        timesheet_todo_items(
+          id,
+          hours_allocated,
+          todo_items:todo_item_id(id, title, status, is_archived)
+        )
+      `)
+      .eq('id', id)
+      .single()
+
     return NextResponse.json({ 
       success: true, 
       timesheet: {
-        id: timesheet.id,
-        date: timesheet.date,
-        projectId: timesheet.project_id,
-        project: timesheet.projects?.name || 'No Project',
-        client: timesheet.projects?.clients?.name || 'No Client',
-        hours: timesheet.hours,
-        description: timesheet.description,
-        billable: timesheet.billable,
-        hourlyRate: timesheet.projects?.hourly_rate || 0,
-        total: timesheet.billable ? timesheet.hours * (timesheet.projects?.hourly_rate || 0) : 0,
-        createdAt: timesheet.created_at,
-        updatedAt: timesheet.updated_at
+        id: timesheetWithTodos.id,
+        date: timesheetWithTodos.date,
+        projectId: timesheetWithTodos.project_id,
+        project: timesheetWithTodos.projects?.name || 'No Project',
+        client: timesheetWithTodos.projects?.clients?.name || 'No Client',
+        hours: timesheetWithTodos.hours,
+        description: timesheetWithTodos.description,
+        billable: timesheetWithTodos.billable,
+        hourlyRate: timesheetWithTodos.projects?.hourly_rate || 0,
+        total: timesheetWithTodos.billable ? timesheetWithTodos.hours * (timesheetWithTodos.projects?.hourly_rate || 0) : 0,
+        todoItems: timesheetWithTodos.timesheet_todo_items?.map((tti: any) => ({
+          id: tti.todo_items?.id,
+          title: tti.todo_items?.title,
+          status: tti.todo_items?.status,
+          isArchived: tti.todo_items?.is_archived,
+          hoursAllocated: tti.hours_allocated
+        })) || [],
+        createdAt: timesheetWithTodos.created_at,
+        updatedAt: timesheetWithTodos.updated_at
       }
     })
   } catch (error) {

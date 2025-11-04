@@ -35,7 +35,7 @@ function MobileAssistantContent() {
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
   const [isProcessing, setIsProcessing] = useState(false)
-  const [currentStep, setCurrentStep] = useState<'date' | 'project' | 'hours' | 'description' | 'confirm'>('date')
+  const [currentStep, setCurrentStep] = useState<'date' | 'project' | 'hours' | 'description' | 'todos' | 'confirm'>('date')
   const [formData, setFormData] = useState({
     date: '',
     projectId: '',
@@ -43,6 +43,8 @@ function MobileAssistantContent() {
     description: '',
     billable: false
   })
+  const [availableTodos, setAvailableTodos] = useState<any[]>([])
+  const [selectedTodos, setSelectedTodos] = useState<Array<{ todoItemId: string; hoursAllocated: number }>>([])
 
   useEffect(() => {
     fetchProjects()
@@ -114,6 +116,9 @@ function MobileAssistantContent() {
           break
         case 'description':
           await handleDescriptionInput(input)
+          break
+        case 'todos':
+          await handleTodosInput(input)
           break
         case 'confirm':
           await handleConfirmation(input)
@@ -199,22 +204,132 @@ function MobileAssistantContent() {
     setCurrentStep('description')
   }
 
+  const fetchTodosForProject = async (projectId: string) => {
+    if (!projectId || !currentWorkspace) return []
+    
+    try {
+      const response = await fetch(`/api/todo-items?projectId=${projectId}&workspaceId=${currentWorkspace.id}&includeArchived=false`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        const todos = data.todoItems || []
+        // Ensure todos have the expected structure
+        const formattedTodos = todos.map((t: any) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status || 'todo'
+        }))
+        setAvailableTodos(formattedTodos)
+        return formattedTodos
+      } else {
+        console.error('Failed to fetch todos:', data.error)
+      }
+    } catch (error) {
+      console.error('Failed to fetch todos:', error)
+    }
+    return []
+  }
+
   const handleDescriptionInput = async (input: string) => {
     setFormData(prev => ({ ...prev, description: input }))
     
+    // Fetch todos for the selected project
+    const todos = await fetchTodosForProject(formData.projectId)
+    
+    if (todos.length > 0) {
+      setCurrentStep('todos')
+      addBotMessage(`Would you like to link any todo items to this timesheet? I found ${todos.length} todo(s) for this project.`, 
+        ['Yes, link todos', 'No, skip', ...todos.slice(0, 5).map((t: any) => t.title)])
+    } else {
+      showConfirmation()
+      setCurrentStep('confirm')
+    }
+  }
+
+  const handleTodosInput = async (input: string) => {
+    const normalize = (value: string) =>
+      (value || '')
+        .toLowerCase()
+        .replace(/[^a-z0-9\s]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim()
+    if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('link')) {
+      const todoList = availableTodos.map((t: any, i: number) => `${i + 1}. ${t.title} (${t.status})`).join('\n')
+      addBotMessage(`Here are the available todos:\n\n${todoList}\n\nYou can select by typing numbers (e.g., "1, 3") or type "skip" to continue.`, 
+        ['Skip', ...availableTodos.slice(0, 5).map((t: any) => t.title)])
+    } else if (input.toLowerCase().includes('no') || input.toLowerCase().includes('skip')) {
+      setSelectedTodos([])
+      showConfirmation()
+      setCurrentStep('confirm')
+    } else {
+      // Match todos by numbers or names
+      const matchedTodos: any[] = []
+      const inputLower = input.toLowerCase()
+      const inputNorm = normalize(input)
+      
+      const isNumberList = /^\s*\d+(\s*,\s*\d+)*\s*$/.test(input)
+      if (isNumberList) {
+        const numberMatches = input.match(/\d+/g)
+        numberMatches?.forEach(num => {
+          const index = parseInt(num) - 1
+          if (index >= 0 && index < availableTodos.length) {
+            matchedTodos.push(availableTodos[index])
+          }
+        })
+      } else {
+        availableTodos.forEach((todo: any) => {
+          const titleLower = (todo.title || '').toLowerCase()
+          const titleNorm = normalize(todo.title || '')
+          if (
+            inputLower === titleLower ||
+            titleLower.includes(inputLower) ||
+            inputLower.includes(titleLower) ||
+            inputNorm === titleNorm ||
+            titleNorm.includes(inputNorm) ||
+            inputNorm.includes(titleNorm)
+          ) {
+            matchedTodos.push(todo)
+          }
+        })
+      }
+      
+      if (matchedTodos.length > 0) {
+        const hoursPerTodo = parseFloat(formData.hours) / matchedTodos.length
+        setSelectedTodos(prev => {
+          const newTodos = [...prev]
+          matchedTodos.forEach((todo: any) => {
+            if (!newTodos.find(t => t.todoItemId === todo.id)) {
+              newTodos.push({ todoItemId: todo.id, hoursAllocated: hoursPerTodo })
+            }
+          })
+          return newTodos
+        })
+        addBotMessage(`Great! I've linked ${matchedTodos.length} todo item(s) (${hoursPerTodo.toFixed(2)}h each). Ready to confirm?`, 
+          ['Yes, confirm', 'Skip'])
+      } else {
+        addBotMessage("I couldn't find those todos. Try again or type 'skip' to continue.", 
+          ['Skip', ...availableTodos.slice(0, 5).map((t: any) => t.title)])
+      }
+    }
+  }
+
+  const showConfirmation = () => {
     const project = projects.find(p => p.id === formData.projectId)
-    const confirmMessage = `Perfect! Here's your timesheet entry:
+    let confirmMessage = `Perfect! Here's your timesheet entry:
 
 📅 **Date:** ${formData.date}
 🏢 **Project:** ${project?.name || 'Unknown'}
 ⏰ **Hours:** ${formData.hours}
-📝 **Description:** ${input}
-💰 **Billable:** ${formData.billable ? 'Yes' : 'No'}
+📝 **Description:** ${formData.description}
+💰 **Billable:** ${formData.billable ? 'Yes' : 'No'}`
 
-Does this look correct?`
+    if (selectedTodos.length > 0) {
+      const totalAllocated = selectedTodos.reduce((sum, t) => sum + (t.hoursAllocated || 0), 0)
+      confirmMessage += `\n\n✅ **Linked Todos:** ${selectedTodos.length} todo item(s) (${totalAllocated.toFixed(2)}h allocated)`
+    }
 
+    confirmMessage += `\n\nDoes this look correct?`
     addBotMessage(confirmMessage, ['Yes, save it', 'No, let me fix it'])
-    setCurrentStep('confirm')
   }
 
   const handleConfirmation = async (input: string) => {
@@ -239,7 +354,8 @@ Does this look correct?`
           date: formData.date,
           hours: parseFloat(formData.hours),
           description: formData.description,
-          billable: formData.billable
+          billable: formData.billable,
+          todoItems: selectedTodos.filter(t => t.hoursAllocated > 0)
         }),
       })
 
@@ -273,6 +389,8 @@ Does this look correct?`
       description: '',
       billable: false
     })
+    setSelectedTodos([])
+    setAvailableTodos([])
   }
 
   const handleSend = () => {

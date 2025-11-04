@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, usePathname } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { WorkspaceSwitcher } from "./WorkspaceSwitcher"
@@ -10,6 +10,7 @@ import { useWorkspace } from "@/lib/workspace-context"
 
 export function TopNav() {
   const router = useRouter()
+  const pathname = usePathname()
   const { currentWorkspace } = useWorkspace()
 
   const handleLogout = async () => {
@@ -32,6 +33,19 @@ export function TopNav() {
     return path
   }
 
+  const isActive = (path: string) => {
+    if (!pathname) return false
+    // consider subroutes active (e.g., /timesheets/123)
+    return pathname === path || pathname.startsWith(path + "/")
+  }
+
+  const linkClass = (path: string) =>
+    `text-sm font-medium transition-colors ${
+      isActive(path)
+        ? "text-primary underline underline-offset-8 decoration-2"
+        : "hover:text-primary"
+    }`
+
   return (
     <Card className="w-full sticky top-0 z-50 hidden md:block">
       <div className="flex items-center justify-between p-4">
@@ -44,22 +58,25 @@ export function TopNav() {
             />
           </Link>
           <nav className="flex items-center space-x-6">
-            <Link href={createLink("/timesheets")} className="text-sm font-medium hover:text-primary">
+            <Link href={createLink("/timesheets")} className={linkClass("/timesheets")}>
               Timesheets
             </Link>
-            <Link href={createLink("/projects")} className="text-sm font-medium hover:text-primary">
+            <Link href={createLink("/projects")} className={linkClass("/projects")}>
               Projects
             </Link>
-            <Link href={createLink("/clients")} className="text-sm font-medium hover:text-primary">
+            <Link href={createLink("/todos")} className={linkClass("/todos")}>
+              Todos
+            </Link>
+            <Link href={createLink("/clients")} className={linkClass("/clients")}>
               Clients
             </Link>
-            <Link href={createLink("/invoices")} className="text-sm font-medium hover:text-primary">
+            <Link href={createLink("/invoices")} className={linkClass("/invoices")}>
               Invoices
             </Link>
-            <Link href={createLink("/payments")} className="text-sm font-medium hover:text-primary">
+            <Link href={createLink("/payments")} className={linkClass("/payments")}>
               Payments
             </Link>
-            <Link href={createLink("/settings")} className="text-sm font-medium hover:text-primary">
+            <Link href={createLink("/settings")} className={linkClass("/settings")}>
               Settings
             </Link>
           </nav>

@@ -25,6 +25,7 @@ interface Timesheet {
   billable: boolean
   hourlyRate: number
   total: number
+  todoItems?: Array<{ id: string; title: string; status: string; hoursAllocated: number }>
   createdAt: string
   updatedAt: string
 }
@@ -302,7 +303,14 @@ export default function Timesheets() {
                         </DropdownMenuItem>
                         <DropdownMenuItem className="cursor-pointer" asChild>
                           <TimesheetModal 
-                            timesheet={timesheet} 
+                            timesheet={{
+                              ...timesheet,
+                              // Map display todo items to modal's expected structure
+                              todoItems: timesheet.todoItems?.map((t) => ({
+                                todoItemId: (t as any).id,
+                                hoursAllocated: (t as any).hoursAllocated || 0,
+                              }))
+                            } as any}
                             projects={projects}
                             onSave={handleSaveTimesheet}
                             trigger={

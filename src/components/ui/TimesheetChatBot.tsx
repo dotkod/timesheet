@@ -30,12 +30,19 @@ interface Project {
   fixedAmount?: number
 }
 
+interface TodoItem {
+  id: string
+  title: string
+  status: 'todo' | 'in-progress' | 'done'
+}
+
 interface TimesheetData {
   date: string
   projectId: string
   hours: number
   description: string
   billable: boolean
+  todoItems?: Array<{ todoItemId: string; hoursAllocated: number; newStatus?: 'todo' | 'in-progress' | 'done' }>
 }
 
 interface Message {
@@ -55,12 +62,14 @@ export function TimesheetChatBot({ projects, onSave }: TimesheetChatBotProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState("")
-  const [currentStep, setCurrentStep] = useState<'greeting' | 'mode' | 'date' | 'project' | 'hours' | 'description' | 'confirm' | 'tracking'>('greeting')
+  const [currentStep, setCurrentStep] = useState<'greeting' | 'mode' | 'date' | 'project' | 'hours' | 'description' | 'todos' | 'todo-status' | 'confirm' | 'tracking'>('greeting')
   const [timesheetData, setTimesheetData] = useState<Partial<TimesheetData>>({})
   const [isProcessing, setIsProcessing] = useState(false)
   const [activeSession, setActiveSession] = useState<TimeTrackingSession | null>(null)
   const [elapsedTime, setElapsedTime] = useState(0)
   const [isInitialized, setIsInitialized] = useState(false)
+  const [availableTodos, setAvailableTodos] = useState<TodoItem[]>([])
+  const [selectedTodos, setSelectedTodos] = useState<Array<{ todoItemId: string; hoursAllocated: number; newStatus?: 'todo' | 'in-progress' | 'done' }>>([])
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const { currentWorkspace } = useWorkspace()
 
@@ -111,7 +120,7 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
 
   const addBotMessage = (content: string, suggestions?: string[]) => {
     const message: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       type: 'bot',
       content,
       timestamp: new Date(),
@@ -122,7 +131,7 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
 
   const addUserMessage = (content: string) => {
     const message: Message = {
-      id: Date.now().toString(),
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 11)}`,
       type: 'user',
       content,
       timestamp: new Date()
@@ -161,7 +170,6 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
               if (session) {
                 setActiveSession(null)
                 setElapsedTime(0)
-                setCurrentStep('description')
                 const elapsedMs = getElapsedTime(session)
                 const minutes = calculateMinutes(elapsedMs)
                 const hours = calculateHours(elapsedMs)
@@ -170,18 +178,34 @@ What would you like to do?`, ['Stop tracking', 'Continue tracking', 'Add descrip
                   projectId: session.projectId,
                   hours: hours
                 })
-                setTimeout(() => {
-                  const actualMinutes = calculateMinutes(elapsedMs)
-                  const actualHours = calculateHours(elapsedMs)
-                  const isMinimumApplied = actualMinutes < 15
-                  
-                  addBotMessage(`Time tracking stopped! 
+                
+                // Fetch todos for the project
+                fetchTodosForProject(session.projectId).then((todos) => {
+                  setTimeout(() => {
+                    const actualMinutes = calculateMinutes(elapsedMs)
+                    const actualHours = calculateHours(elapsedMs)
+                    const isMinimumApplied = actualMinutes < 15
+                    
+                    if (todos.length > 0) {
+                      setCurrentStep('todos')
+                      addBotMessage(`Time tracking stopped! 
 
 📁 **Project:** ${session.projectName} (${session.clientName})
-⏱️ **Duration:** ${minutes} minutes (${hours} hours)${isMinimumApplied ? ' ⚡ *15-min minimum applied*' : ''}
+⏱️ **Duration:** ${minutes} minutes (${actualHours} hours)${isMinimumApplied ? ' ⚡ *15-min minimum applied*' : ''}
+
+Which todo item did you work on? You can mention the todo name or number, or type "skip" to add a custom description.`, 
+                        ['Skip', ...todos.slice(0, 5).map((t: TodoItem) => t.title)])
+                    } else {
+                      setCurrentStep('description')
+                      addBotMessage(`Time tracking stopped! 
+
+📁 **Project:** ${session.projectName} (${session.clientName})
+⏱️ **Duration:** ${minutes} minutes (${actualHours} hours)${isMinimumApplied ? ' ⚡ *15-min minimum applied*' : ''}
 
 What did you work on during this session?`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
-                }, 500)
+                    }
+                  }, 500)
+                })
               }
             }
           } else if (input.toLowerCase().includes('continue')) {
@@ -193,7 +217,7 @@ You can come back anytime to stop tracking.`, ['Stop tracking', 'Add description
           } else if (input.toLowerCase().includes('description')) {
             setCurrentStep('description')
             setTimeout(() => {
-              addBotMessage(`What are you working on for **${activeSession?.projectName}**? You can add notes about your current tasks.`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
+              addBotMessage(`What are you working on for **${activeSession?.projectName}**? You can mention a todo item or add custom notes.`, ['Bug fixes', 'Feature development', 'Code review', 'Testing', 'Documentation'])
             }, 500)
           } else {
             addBotMessage("What would you like to do with your active time tracking session?", ['Stop tracking', 'Continue tracking', 'Add description'])
@@ -298,33 +322,150 @@ You can also add notes about what you're working on.`, ['Stop tracking', 'Add de
         case 'description':
           if (input.trim().length > 0) {
             setTimesheetData(prev => ({ ...prev, description: input.trim() }))
-            setCurrentStep('confirm')
             
-            const selectedProject = projects.find(p => p.id === timesheetData.projectId)
-            const isFixedProject = selectedProject?.billingType === 'fixed'
-            
-            setTimeout(() => {
-              const hours = timesheetData.hours || 0
-              const billedMinutes = Math.round(hours * 60)
-              const confirmationMessage = `Perfect! Let me confirm your timesheet entry:
-
-📅 **Date:** ${timesheetData.date}
-📁 **Project:** ${selectedProject?.name} (${selectedProject?.client?.name || 'No Client'})
-⏰ **Hours:** ${hours} (${billedMinutes} minutes)${billedMinutes === 15 && hours === 0.25 ? ' ⚡ *15-min minimum*' : ''}
-📝 **Description:** ${input.trim()}
-💰 **Billable:** ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}
-
-Does this look correct?`
-              
-              addBotMessage(confirmationMessage, ['Yes, save it', 'No, start over'])
-            }, 500)
+            // Fetch todos for the selected project
+            if (timesheetData.projectId && currentWorkspace) {
+              fetchTodosForProject(timesheetData.projectId).then((todos) => {
+                setCurrentStep('todos')
+                setTimeout(() => {
+                  if (todos && todos.length > 0) {
+                    addBotMessage(`Would you like to link any todo items to this timesheet? I found ${todos.length} todo(s) for this project.`, 
+                      ['Yes, link todos', 'No, skip', ...todos.slice(0, 5).map((t: TodoItem) => t.title)])
+                  } else {
+                    // Skip to confirm if no todos
+                    setCurrentStep('confirm')
+                    showConfirmation()
+                  }
+                }, 500)
+              })
+            } else {
+              setCurrentStep('confirm')
+              showConfirmation()
+            }
           } else {
             addBotMessage("Please provide a description of what you worked on.")
           }
           break
 
+        case 'todos':
+          if (input.toLowerCase().includes('skip') || input.toLowerCase().includes('no') || input.toLowerCase().includes('no, skip')) {
+            setSelectedTodos([])
+            setCurrentStep('confirm')
+            setTimeout(() => {
+              showConfirmation()
+            }, 500)
+          } else if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('link')) {
+            // Show list of todos for selection
+            if (availableTodos.length > 0) {
+              const todoList = availableTodos.map((t: TodoItem, i: number) => `${i + 1}. ${t.title}`).join('\n')
+              addBotMessage(`Here are the available todos:\n\n${todoList}\n\nYou can select by typing the todo name or number (e.g., "1" or "${availableTodos[0]?.title}"), or type "skip" to continue without linking.`, 
+                ['Skip', ...availableTodos.slice(0, 5).map((t: TodoItem) => t.title)])
+            } else {
+              setCurrentStep('confirm')
+              showConfirmation()
+            }
+          } else {
+            // Try to match input with todo titles or numbers
+            const matchedTodos: TodoItem[] = []
+            const inputLower = input.toLowerCase()
+            const inputNorm = normalize(input)
+            
+            // Only treat as index selection if the input is purely a list of numbers
+            const isNumberList = /^\s*\d+(\s*,\s*\d+)*\s*$/.test(input)
+            if (isNumberList) {
+              const numberMatches = input.match(/\d+/g)
+              numberMatches?.forEach(num => {
+                const index = parseInt(num) - 1
+                if (index >= 0 && index < availableTodos.length) {
+                  matchedTodos.push(availableTodos[index])
+                }
+              })
+            } else {
+              // Try to match by title (tolerant)
+              availableTodos.forEach(todo => {
+                const titleLower = todo.title.toLowerCase()
+                const titleNorm = normalize(todo.title)
+                if (
+                  inputLower === titleLower ||
+                  titleLower.includes(inputLower) ||
+                  inputLower.includes(titleLower) ||
+                  inputNorm === titleNorm ||
+                  titleNorm.includes(inputNorm) ||
+                  inputNorm.includes(titleNorm)
+                ) {
+                  matchedTodos.push(todo)
+                }
+              })
+            }
+            
+            if (matchedTodos.length > 0) {
+              // For now, handle one todo at a time during tracking
+              const matchedTodo = matchedTodos[0]
+              
+              // Set description to todo title if not already set
+              if (!timesheetData.description) {
+                setTimesheetData(prev => ({ ...prev, description: matchedTodo.title }))
+              }
+              
+              // Allocate all hours to this todo
+              setSelectedTodos([{ 
+                todoItemId: matchedTodo.id, 
+                hoursAllocated: timesheetData.hours || 0 
+              }])
+              
+              setCurrentStep('todo-status')
+              setTimeout(() => {
+                addBotMessage(`Great! I've linked "${matchedTodo.title}" to this timesheet. 
+
+Is this todo item now **completed** or still **in progress**?`, 
+                  ['Completed', 'In Progress', 'No change'])
+              }, 500)
+            } else {
+              // If no match found, offer to skip or try again
+              addBotMessage("I couldn't find that todo. You can try again with the todo name or number, or type 'skip' to continue without linking.", 
+                ['Skip', ...availableTodos.slice(0, 5).map((t: TodoItem) => t.title)])
+            }
+          }
+          break
+
+        case 'todo-status':
+          const selectedTodo = selectedTodos[0]
+          if (selectedTodo) {
+            let newStatus: 'todo' | 'in-progress' | 'done' | undefined
+            
+            if (input.toLowerCase().includes('complete') || input.toLowerCase().includes('done')) {
+              newStatus = 'done'
+              setSelectedTodos([{ ...selectedTodo, newStatus: 'done' }])
+              addBotMessage(`Perfect! I'll mark "${availableTodos.find(t => t.id === selectedTodo.todoItemId)?.title}" as completed when saving the timesheet.`, 
+                ['Continue'])
+              setTimeout(() => {
+                setCurrentStep('confirm')
+                showConfirmation()
+              }, 1000)
+            } else if (input.toLowerCase().includes('progress') || input.toLowerCase().includes('in progress')) {
+              newStatus = 'in-progress'
+              setSelectedTodos([{ ...selectedTodo, newStatus: 'in-progress' }])
+              addBotMessage(`Got it! I'll mark "${availableTodos.find(t => t.id === selectedTodo.todoItemId)?.title}" as in progress.`, 
+                ['Continue'])
+              setTimeout(() => {
+                setCurrentStep('confirm')
+                showConfirmation()
+              }, 1000)
+            } else if (input.toLowerCase().includes('no change') || input.toLowerCase().includes('skip')) {
+              setCurrentStep('confirm')
+              showConfirmation()
+            } else {
+              addBotMessage("Please let me know: Is this todo **completed** or still **in progress**?", 
+                ['Completed', 'In Progress', 'No change'])
+            }
+          } else {
+            setCurrentStep('confirm')
+            showConfirmation()
+          }
+          break
+
         case 'confirm':
-          if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('save')) {
+          if (input.toLowerCase().includes('yes') || input.toLowerCase().includes('save') || input.toLowerCase().includes('confirm') || input.toLowerCase().includes('continue')) {
             const selectedProject = projects.find(p => p.id === timesheetData.projectId)
             const isFixedProject = selectedProject?.billingType === 'fixed'
             
@@ -333,11 +474,32 @@ Does this look correct?`
               projectId: timesheetData.projectId!,
               hours: timesheetData.hours!,
               description: timesheetData.description!,
-              billable: !isFixedProject // Fixed projects are not billable per timesheet
+              billable: !isFixedProject, // Fixed projects are not billable per timesheet
+              todoItems: selectedTodos.filter(t => t.hoursAllocated > 0)
             }
             
             addBotMessage("Great! Creating your timesheet entry...")
-            setTimeout(() => {
+            setTimeout(async () => {
+              // Update todo statuses if needed
+              if (selectedTodos.length > 0) {
+                for (const todoItem of selectedTodos) {
+                  if (todoItem.newStatus) {
+                    try {
+                      await fetch('/api/todo-items', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          id: todoItem.todoItemId,
+                          status: todoItem.newStatus
+                        })
+                      })
+                    } catch (error) {
+                      console.error('Failed to update todo status:', error)
+                    }
+                  }
+                }
+              }
+              
               onSave(finalData)
               addBotMessage("✅ Timesheet entry created successfully!")
               setTimeout(() => {
@@ -351,6 +513,7 @@ Does this look correct?`
               addBotMessage(`Let's start with today's date (${today}). Is this correct, or did you work on a different date?`, ['Yes, today', 'Yesterday', 'Different date'])
               setCurrentStep('date')
               setTimesheetData({})
+              setSelectedTodos([])
             }, 500)
           } else {
             addBotMessage("Please click one of the suggestions above or type 'yes' to save or 'no' to start over.", ['Yes, save it', 'No, start over'])
@@ -364,10 +527,75 @@ Does this look correct?`
     }
   }
 
+  // Normalize text for tolerant matching (case/space/punctuation-insensitive)
+  const normalize = (value: string) =>
+    (value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+  const fetchTodosForProject = async (projectId: string) => {
+    if (!projectId || !currentWorkspace) return []
+    
+    try {
+      const response = await fetch(`/api/todo-items?projectId=${projectId}&workspaceId=${currentWorkspace.id}&includeArchived=false`)
+      const data = await response.json()
+      
+      if (response.ok) {
+        const todos = data.todoItems || []
+        // Ensure todos have the expected structure
+        const formattedTodos = todos.map((t: any) => ({
+          id: t.id,
+          title: t.title,
+          status: t.status || 'todo'
+        }))
+        setAvailableTodos(formattedTodos)
+        return formattedTodos
+      } else {
+        console.error('Failed to fetch todos:', data.error)
+      }
+    } catch (error) {
+      console.error('Failed to fetch todos:', error)
+    }
+    return []
+  }
+
+  const showConfirmation = () => {
+    const selectedProject = projects.find(p => p.id === timesheetData.projectId)
+    const isFixedProject = selectedProject?.billingType === 'fixed'
+    const hours = timesheetData.hours || 0
+    const billedMinutes = Math.round(hours * 60)
+    
+    let confirmationMessage = `Perfect! Let me confirm your timesheet entry:
+
+📅 **Date:** ${timesheetData.date}
+📁 **Project:** ${selectedProject?.name} (${selectedProject?.client?.name || 'No Client'})
+⏰ **Hours:** ${hours} (${billedMinutes} minutes)${billedMinutes === 15 && hours === 0.25 ? ' ⚡ *15-min minimum*' : ''}
+📝 **Description:** ${timesheetData.description}
+💰 **Billable:** ${isFixedProject ? 'No (Fixed Monthly Project)' : 'Yes'}`
+
+    if (selectedTodos.length > 0) {
+      const todoDetails = selectedTodos.map(t => {
+        const todo = availableTodos.find((at: TodoItem) => at.id === t.todoItemId)
+        const statusUpdate = t.newStatus ? ` → ${t.newStatus.replace('-', ' ')}` : ''
+        return `  • ${todo?.title || 'Unknown'} (${t.hoursAllocated.toFixed(2)}h)${statusUpdate}`
+      }).join('\n')
+      
+      confirmationMessage += `\n\n✅ **Linked Todo:**\n${todoDetails}`
+    }
+
+    confirmationMessage += `\n\nDoes this look correct?`
+    
+    addBotMessage(confirmationMessage, ['Yes, save it', 'No, start over'])
+  }
+
   const resetChat = () => {
     setMessages([])
     setCurrentStep('greeting')
     setTimesheetData({})
+    setSelectedTodos([])
+    setAvailableTodos([])
     setInputValue("")
     setTimeout(() => {
       const state = getTimeTrackingState()
