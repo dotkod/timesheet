@@ -67,6 +67,33 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
 
+## macOS Menu Bar App (Electron)
+
+The project includes an Electron wrapper that creates a macOS menu bar application for quick access to your timesheet.
+
+### Quick Setup
+
+```bash
+# Install Electron dependencies
+pnpm electron:install
+
+# Run in development
+pnpm electron:dev
+
+# Build macOS app
+pnpm electron:build
+```
+
+After building, drag `electron/dist/Timesheet.app` to your `/Applications` folder.
+
+**Features:**
+- Menu bar icon for quick access
+- Popover window that loads your deployed app (https://ts.dotkod.com/)
+- No App Store required - install locally
+- Auto-positioning near the menu bar
+
+For detailed instructions, see [electron/QUICK_START.md](./electron/QUICK_START.md) or [electron/INSTALL.md](./electron/INSTALL.md)
+
 ## Project Structure
 
 ```
@@ -86,6 +113,10 @@ src/
 │   └── ui/               # ShadCN UI components
 ├── lib/                  # Utility functions and configurations
 └── styles/               # Global styles
+electron/                  # Electron menu bar app
+├── main.js               # Electron main process
+├── package.json          # Electron dependencies
+└── dist/                 # Built macOS app (after build)
 ```
 
 ## Database Schema

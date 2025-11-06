@@ -10,7 +10,10 @@
     "lint": "next lint",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:run": "vitest run"
+    "test:run": "vitest run",
+    "electron:install": "cd electron && pnpm install",
+    "electron:dev": "cd electron && pnpm start",
+    "electron:build": "cd electron && pnpm build:mac"
   },
   "repository": {
     "type": "git",

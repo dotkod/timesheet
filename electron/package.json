@@ -1,0 +1,44 @@
+{
+  "name": "timesheet-electron",
+  "version": "1.0.0",
+  "description": "Timesheet menu bar app for macOS",
+  "main": "main.js",
+  "scripts": {
+    "postinstall": "electron-builder install-app-deps || node node_modules/.pnpm/electron@*/node_modules/electron/install.js || true",
+    "start": "electron .",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "dist": "electron-builder --mac"
+  },
+  "author": "Dotkod",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^39.1.0",
+    "electron-builder": "^24.9.1"
+  },
+  "build": {
+    "appId": "com.dotkod.timesheet",
+    "productName": "Timesheet",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": [
+        {
+          "target": "default",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "icon.png",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
+    },
+    "files": [
+      "main.js",
+      "icon.png"
+    ],
+    "directories": {
+      "output": "dist"
+    }
+  }
+}
